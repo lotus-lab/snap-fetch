@@ -1,0 +1,37 @@
+{
+  "compilerOptions": {
+    "outDir": "dist/esm",
+    "module": "ES6",
+    "target": "es5",
+    "lib": [
+      "ES7",
+      "DOM",
+      "ES2015",
+      "ES6",
+      "ES2017", 
+      "ES2018",
+      "ES2023"
+    ],
+    "declaration": true,
+    "moduleResolution": "Node",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "esModuleInterop": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "ignoreDeprecations": "5.0",
+    "suppressImplicitAnyIndexErrors": true,
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": "./",
+    "skipLibCheck": true,
+  },
+  "include": [
+    "src",
+  ],
+  "exclude": [
+    "node_modules",
+    "lib"
+  ]
+}
