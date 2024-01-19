@@ -9,16 +9,19 @@ import {
 } from "redux-saga/effects";
 import { PayloadAction } from "@reduxjs/toolkit";
 
-import { selectQueriesDataByTags, selectRqueryApiConfig } from "../selectors";
+import {
+  selectQueriesDataByTags,
+  selectCacheBoltApiConfig,
+} from "../selectors/selectors";
 import { actions } from "../toolkit";
 import {
   APiConfig,
   EndpointResult,
   InvalidateCachePayload,
   RequestPayload,
-} from "../types";
+} from "../types/types";
 import { isEqual } from "lodash";
-import { fetcher } from "..";
+import { fetcher } from "src/utils/utils";
 
 function* fetchDataSaga(action: PayloadAction<RequestPayload>) {
   const {
@@ -36,7 +39,7 @@ function* fetchDataSaga(action: PayloadAction<RequestPayload>) {
   let data: unknown;
 
   try {
-    const baseApiConfig: APiConfig = yield select(selectRqueryApiConfig);
+    const baseApiConfig: APiConfig = yield select(selectCacheBoltApiConfig);
 
     const response: Response = yield call(() =>
       fetcher({
@@ -97,7 +100,7 @@ function* invalidateCatchSaga(action: PayloadAction<InvalidateCachePayload>) {
       })
     );
 
-    const baseApiConfig: APiConfig = yield select(selectRqueryApiConfig);
+    const baseApiConfig: APiConfig = yield select(selectCacheBoltApiConfig);
 
     if (
       mutation &&
@@ -148,6 +151,6 @@ export function* querySaga() {
   yield takeEvery(actions.invalidateCache.type, invalidateCatchSaga);
 }
 
-export function* rootQuerySaga() {
+export function* rootCacheBoltSaga() {
   yield all([querySaga()]);
 }

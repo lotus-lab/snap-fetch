@@ -8,7 +8,7 @@ const baseConfig = createBasicConfig();
 
 export default merge(baseConfig, [
   {
-    input: "./dist/esm/src/index.js",
+    input: "./dist/esm/index.js",
     output: {
       dir: "lib/esm",
       format: "esm",
@@ -22,12 +22,12 @@ export default merge(baseConfig, [
       }),
       terser(),
     ],
-    // external: [
-    //   "react",
-    //   "react-redux",
-    //   "redux-saga",
-    //   "react-dom",
-    //   "@reduxjs/toolkit",
-    // ],
+    external: [
+      "react",
+      "react-redux",
+      "redux-saga",
+      "redux-saga/effects",
+      "@reduxjs/toolkit",
+    ],
   },
 ]);

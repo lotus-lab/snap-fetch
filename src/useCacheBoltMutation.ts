@@ -2,10 +2,13 @@
 import { useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { actions } from ".";
-import { selectMutationsData, selectRqueryApiConfig } from "./selectors";
-import { BodyType, Method, MutationRequestOptions } from "./types";
-import { RequestPayload } from ".";
+import { actions } from "./index";
+import {
+  selectMutationsData,
+  selectCacheBoltApiConfig,
+} from "./selectors/selectors";
+import { BodyType, Method, MutationRequestOptions } from "./types/types";
+import { RequestPayload } from "./types/types";
 
 export interface Result<T> {
   data?: T | undefined;
@@ -20,12 +23,12 @@ export interface Result<T> {
   clear: () => void;
 }
 
-export const useRMutation = <T>(
+export const useCacheBoltMutation = <T>(
   endpoint: string,
   requestOptions: MutationRequestOptions<T> = {}
 ): Result<T | undefined> => {
   const { baseUrl, customFetchFunction, ...rest } = useSelector(
-    selectRqueryApiConfig
+    selectCacheBoltApiConfig
   );
 
   const {

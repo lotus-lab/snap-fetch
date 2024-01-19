@@ -5,11 +5,11 @@
 ### Using npm
 
 ```cmd
-  npm install rquery
+  npm install cachebolt
 ```
 
 ### Using yarn
 
 ```cmd
-  yarn add rquery
+  yarn add cachebolt
 ```

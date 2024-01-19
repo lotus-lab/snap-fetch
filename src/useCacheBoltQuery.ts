@@ -5,20 +5,23 @@ import {
   Pagination,
   RequestOptions,
   RequestPayload,
-} from "./types";
-import { actions } from ".";
+} from "./types/types";
+import { actions } from "./index";
 import { useDispatch, useSelector } from "react-redux";
-import { selectQueriesData, selectRqueryApiConfig } from "./selectors";
-import { RqueryResult } from "./types";
+import {
+  selectQueriesData,
+  selectCacheBoltApiConfig,
+} from "./selectors/selectors";
+import { CacheBoltResult } from "./types/types";
 import { usePagination } from "./utils/usePagination";
 import { isEmpty } from "lodash";
 
-export const useRQuery = <T>(
+export const useCacheBoltQuery = <T>(
   endpoint: EndpointKey,
   requestOptions: RequestOptions = {}
-): RqueryResult<T> => {
+): CacheBoltResult<T> => {
   const dispatch = useDispatch();
-  const rqueryData = useSelector((state: any) =>
+  const CacheBoltData = useSelector((state: any) =>
     selectQueriesData(state, endpoint)
   );
 
@@ -28,12 +31,12 @@ export const useRQuery = <T>(
     disableCaching: baseDisableCaching,
     customFetchFunction,
     ...rest
-  } = useSelector(selectRqueryApiConfig);
+  } = useSelector(selectCacheBoltApiConfig);
 
   /** @PaginationSection */
   const paginationOptions = usePagination({
-    data: rqueryData?.data?.data,
-    total: rqueryData?.data?.total as number,
+    data: CacheBoltData?.data?.data,
+    total: CacheBoltData?.data?.total as number,
   });
 
   const {
@@ -47,8 +50,10 @@ export const useRQuery = <T>(
   } = requestOptions;
 
   const filterString = JSON.stringify(filter);
-  const paginationStringSize = JSON.stringify(rqueryData.pagination?.size);
-  const paginationStringPageNo = JSON.stringify(rqueryData.pagination?.pageNo);
+  const paginationStringSize = JSON.stringify(CacheBoltData.pagination?.size);
+  const paginationStringPageNo = JSON.stringify(
+    CacheBoltData.pagination?.pageNo
+  );
   const tagsString = JSON.stringify(tags);
   const fetchFunctionString = JSON.stringify(customFetchFunction);
 
@@ -66,14 +71,16 @@ export const useRQuery = <T>(
         });
       }
 
-      if (rqueryData?.pagination) {
-        Object.keys(rqueryData?.pagination).forEach((key) => {
-          if (rqueryData?.pagination?.[key as keyof Pagination] !== undefined)
+      if (CacheBoltData?.pagination) {
+        Object.keys(CacheBoltData?.pagination).forEach((key) => {
+          if (
+            CacheBoltData?.pagination?.[key as keyof Pagination] !== undefined
+          )
             queryParams.set(
               key,
               // eslint-disable-next-line @typescript-eslint/ban-ts-comment
               //@ts-ignore
-              rqueryData?.pagination?.[key] as string
+              CacheBoltData?.pagination?.[key] as string
             );
         });
       }
@@ -119,16 +126,16 @@ export const useRQuery = <T>(
     if (!skip && disableCaching) {
       fetchData();
     } else if (!disableCaching && !skip) {
-      if (isEmpty(rqueryData.data)) {
+      if (isEmpty(CacheBoltData.data)) {
         fetchData();
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchData, skip, isEmpty(rqueryData.data), disableCaching]);
+  }, [fetchData, skip, isEmpty(CacheBoltData.data), disableCaching]);
 
   return {
     refetch: fetchData,
     paginationOptions,
-    ...rqueryData,
+    ...CacheBoltData,
   };
 };

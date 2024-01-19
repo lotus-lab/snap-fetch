@@ -8,18 +8,18 @@ import {
   EndpointState,
   QueryState,
   Tags,
-} from "../types";
+} from "../types/types";
 import { endpointInitial } from "../constants";
 import { isEqual } from "lodash";
 
 const selectSlice = (state: any) => state;
 const selectRQuerySlice: (state: any) => QueryState = createSelector(
   [selectSlice],
-  (state: any) => state?.rquery
+  (state: any) => state?.cachebolt
 );
 
 export const selectQueryData: (state: any) => EndpointState | undefined =
-  createSelector([selectSlice], (state) => state?.rquery?.endpoints);
+  createSelector([selectSlice], (state) => state?.cachebolt?.endpoints);
 
 export const selectQueriesData: (
   state: any,
@@ -57,12 +57,10 @@ export const selectMutationsData: (
   (state, endpoint) => state?.mutations?.[endpoint] || endpointInitial
 );
 
-export const selectRqueryApiConfig: (state: any) => APiConfig = createSelector(
-  [selectRQuerySlice],
-  (state) => state?.apiConfig
-);
+export const selectCacheBoltApiConfig: (state: any) => APiConfig =
+  createSelector([selectRQuerySlice], (state) => state?.apiConfig);
 
-export const selectRqueryCreatedActions: (state: any) => Array<string> =
+export const selectCacheBoltCreatedActions: (state: any) => Array<string> =
   createSelector([selectSlice], (state) => {
-    return state?.rquery?.actionsType;
+    return state?.cachebolt?.actionsType;
   });

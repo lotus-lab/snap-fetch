@@ -142,7 +142,7 @@ export interface RequestOptions extends CreateApiOptions, Options {
   disableCaching?: boolean;
 }
 
-export interface RqueryResult<T> extends EndpointResult {
+export interface CacheBoltResult<T> extends EndpointResult {
   data?: T | undefined;
   refetch: () => void;
   paginationOptions: ReturnType<typeof usePagination>;

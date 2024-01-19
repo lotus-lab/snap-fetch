@@ -11,7 +11,7 @@ import {
   RequestPaginationPayload,
   RequestPayload,
   RequestSuccessPayload,
-} from "./types";
+} from "./types/types";
 
 import { endpointInitial } from "./constants";
 
@@ -58,8 +58,8 @@ const requestActions: CaseReducer<QueryState, PayloadAction<RequestPayload>> = (
   }
 };
 
-const rquerySlice = createSlice({
-  name: "rquery",
+const CacheBoltSlice = createSlice({
+  name: "cachebolt",
   initialState,
   reducers: {
     takeLeadingRequest: (state, action: PayloadAction<RequestPayload>) =>
@@ -208,4 +208,4 @@ const rquerySlice = createSlice({
 });
 
 export const { reducer, actions, name, caseReducers, getInitialState } =
-  rquerySlice;
+  CacheBoltSlice;

@@ -1,5 +1,5 @@
 import { useDispatch } from "react-redux";
-import { APiConfig, Method, RequestPayload, actions } from "..";
+import { APiConfig, Method, RequestPayload, actions } from "../index";
 import { useCallback, useEffect } from "react";
 
 export const useSetBaseConfiguration = (requestInit: APiConfig) => {
