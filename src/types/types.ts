@@ -5,35 +5,6 @@ import { ActionCreatorWithPayload, PrepareAction } from "@reduxjs/toolkit";
 import { usePagination } from "../utils/usePagination";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export interface QueryResponse<T> {
-  data: T;
-}
-
-export interface QueryError {
-  status: string | number;
-}
-
-export type QueryFn<Args, Response> = (arg: Args) => Promise<Response>;
-
-export type TransformResponseFn<T> = (response: QueryResponse<T>) => T;
-export type TransformErrorFn = (error: QueryError) => any;
-export type ProvidesTagsFn<T> = (result: T, error: any, arg: any) => string[];
-
-export interface EndpointConfig<T, Args> {
-  query: QueryFn<Args, QueryResponse<T>>;
-  transformResponse: TransformResponseFn<T>;
-  transformErrorResponse: TransformErrorFn;
-  providesTags: ProvidesTagsFn<T>;
-  onQueryStarted?: (arg: Args) => Promise<void>;
-  onCacheEntryAdded?: (arg: Args) => Promise<void>;
-}
-
-export type EndpointsConfig = Record<string, EndpointConfig<any, any>>;
-
-export type BaseQueryFn<Args, Response> = QueryFn<
-  Args,
-  QueryResponse<Response>
->;
 
 export type KeysOfEndpointSate = { [key: string]: EndpointResult };
 
@@ -57,6 +28,7 @@ export interface RequestPayload extends RequestInit {
   query?: boolean;
   queryParams?: any;
   method?: Method;
+  createdAt?: Date;
 }
 export type UseQueryOptions = {
   requestInit?: RequestInit;
@@ -103,6 +75,7 @@ export type EndpointResult = {
   query?: boolean;
   endpoint?: EndpointKey | undefined;
   queryParams?: any;
+  createdAt?: Date;
 };
 
 export type EndpointState = {
@@ -143,7 +116,7 @@ export interface RequestOptions extends CreateApiOptions, Options {
   disableCaching?: boolean;
 }
 
-export interface CacheBoltResult<T> extends EndpointResult {
+export interface SnapFetchResult<T> extends EndpointResult {
   data?: T | undefined;
   refetch: () => void;
   paginationOptions: ReturnType<typeof usePagination>;

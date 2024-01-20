@@ -11,7 +11,7 @@ import { PayloadAction } from "@reduxjs/toolkit";
 
 import {
   selectQueriesDataByTags,
-  selectCacheBoltApiConfig,
+  selectSnapFetchApiConfig,
 } from "../selectors/selectors";
 import { actions } from "../toolkit";
 import {
@@ -38,7 +38,7 @@ function* fetchDataSaga(action: PayloadAction<RequestPayload>) {
   let data: unknown;
 
   try {
-    const baseApiConfig: APiConfig = yield select(selectCacheBoltApiConfig);
+    const baseApiConfig: APiConfig = yield select(selectSnapFetchApiConfig);
 
     const response: Response = yield call(() =>
       fetcher({
@@ -99,7 +99,7 @@ function* invalidateCatchSaga(action: PayloadAction<InvalidateCachePayload>) {
       })
     );
 
-    const baseApiConfig: APiConfig = yield select(selectCacheBoltApiConfig);
+    const baseApiConfig: APiConfig = yield select(selectSnapFetchApiConfig);
 
     if (
       mutation &&
@@ -150,6 +150,6 @@ export function* querySaga() {
   yield takeEvery(actions.invalidateCache.type, invalidateCatchSaga);
 }
 
-export function* rootCacheBoltSaga() {
+export function* rootSnapFetchSaga() {
   yield all([querySaga()]);
 }

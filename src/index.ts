@@ -7,9 +7,9 @@ export {
   initialState,
 } from "./toolkit";
 
-export { useCacheBoltQuery } from "./useCacheBoltQuery";
-export { useCacheBoltMutation } from "./useCacheBoltMutation";
-export { rootCacheBoltSaga } from "./saga/saga";
+export { useSnapFetchQuery } from "./useSnapFetchQuery";
+export { useSnapFetchMutation } from "./useSnapFetchMutation";
+export { rootSnapFetchSaga } from "./saga/saga";
 
 export * from "./types/types";
 

@@ -5,18 +5,18 @@ import { actions } from "./toolkit";
 import { useDispatch, useSelector } from "react-redux";
 import {
   selectQueriesData,
-  selectCacheBoltApiConfig,
+  selectSnapFetchApiConfig,
 } from "./selectors/selectors";
-import { CacheBoltResult } from "./types/types";
+import { SnapFetchResult } from "./types/types";
 import { usePagination } from "./utils/usePagination";
 import { isEmpty, isEqual } from "./utils/utils";
 
-export const useCacheBoltQuery = <T>(
+export const useSnapFetchQuery = <T>(
   endpoint: EndpointKey,
   requestOptions: RequestOptions = {}
-): CacheBoltResult<T> => {
+): SnapFetchResult<T> => {
   const dispatch = useDispatch();
-  const cacheBoltData = useSelector((state: any) =>
+  const snapFetchData = useSelector((state: any) =>
     selectQueriesData(state, endpoint)
   );
 
@@ -26,19 +26,19 @@ export const useCacheBoltQuery = <T>(
     disableCaching: baseDisableCaching,
     customFetchFunction,
     ...rest
-  } = useSelector(selectCacheBoltApiConfig);
+  } = useSelector(selectSnapFetchApiConfig);
 
   /** @PaginationSection */
   const paginationOptions = usePagination({
-    data: cacheBoltData?.data?.data,
-    total: cacheBoltData?.data?.total as number,
+    data: snapFetchData?.data?.data,
+    total: snapFetchData?.data?.total as number,
   });
 
   const {
     tags,
     filter = {},
     skip = false,
-    expirationTime = baseExpirationTime,
+    expirationTime = baseExpirationTime ?? 60,
     searchTerm,
     effect = "takeEvery",
     disableCaching = baseDisableCaching ?? false,
@@ -86,6 +86,7 @@ export const useCacheBoltQuery = <T>(
         query: true,
         mutation: false,
         queryParams,
+        createdAt: new Date(),
       };
 
       switch (effect) {
@@ -119,12 +120,12 @@ export const useCacheBoltQuery = <T>(
     if (!skip && disableCaching) {
       fetchData();
     } else if (!disableCaching && !skip) {
-      if (isEmpty(cacheBoltData.data)) {
+      if (isEmpty(snapFetchData.data)) {
         fetchData();
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchData, skip, isEmpty(cacheBoltData.data), disableCaching]);
+  }, [fetchData, skip, isEmpty(snapFetchData.data), disableCaching]);
 
   useEffect(() => {
     if (
@@ -148,6 +149,6 @@ export const useCacheBoltQuery = <T>(
   return {
     refetch: fetchData,
     paginationOptions,
-    ...cacheBoltData,
+    ...snapFetchData,
   };
 };

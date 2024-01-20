@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { actions } from "./toolkit";
 import {
   selectMutationsData,
-  selectCacheBoltApiConfig,
+  selectSnapFetchApiConfig,
 } from "./selectors/selectors";
 import { BodyType, Method, MutationRequestOptions } from "./types/types";
 import { RequestPayload } from "./types/types";
@@ -23,12 +23,12 @@ export interface Result<T> {
   clear: () => void;
 }
 
-export const useCacheBoltMutation = <T>(
+export const useSnapFetchMutation = <T>(
   endpoint: string,
   requestOptions: MutationRequestOptions<T> = {}
 ): Result<T | undefined> => {
   const { baseUrl, customFetchFunction, ...rest } = useSelector(
-    selectCacheBoltApiConfig
+    selectSnapFetchApiConfig
   );
 
   const {

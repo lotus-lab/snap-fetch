@@ -1,6 +1,6 @@
 {
-  "name": "cachebolt",
-  "version": "0.0.8",
+  "name": "snap-fetch",
+  "version": "1.0.3",
   "main": "./lib/src/index.js",
   "module": "./lib/src/index.js",
   "types": "./lib/src/index.d.ts",

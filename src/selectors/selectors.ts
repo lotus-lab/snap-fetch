@@ -15,11 +15,11 @@ import { isEqual } from "../utils/utils";
 const selectSlice = (state: any) => state;
 const selectRQuerySlice: (state: any) => QueryState = createSelector(
   [selectSlice],
-  (state: any) => state?.cachebolt
+  (state: any) => state?.snapFetch
 );
 
 export const selectQueryData: (state: any) => EndpointState | undefined =
-  createSelector([selectSlice], (state) => state?.cachebolt?.endpoints);
+  createSelector([selectSlice], (state) => state?.snapFetch?.endpoints);
 
 export const selectQueriesData: (
   state: any,
@@ -57,10 +57,10 @@ export const selectMutationsData: (
   (state, endpoint) => state?.mutations?.[endpoint] || endpointInitial
 );
 
-export const selectCacheBoltApiConfig: (state: any) => APiConfig =
+export const selectSnapFetchApiConfig: (state: any) => APiConfig =
   createSelector([selectRQuerySlice], (state) => state?.apiConfig);
 
-export const selectCacheBoltCreatedActions: (state: any) => Array<string> =
+export const selectSnapFetchCreatedActions: (state: any) => Array<string> =
   createSelector([selectSlice], (state) => {
-    return state?.cachebolt?.actionsType;
+    return state?.snapFetch?.actionsType;
   });

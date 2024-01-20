@@ -58,8 +58,8 @@ const requestActions: CaseReducer<QueryState, PayloadAction<RequestPayload>> = (
   }
 };
 
-const CacheBoltSlice = createSlice({
-  name: "cachebolt",
+const SnapFetchSlice = createSlice({
+  name: "snapFetch",
   initialState,
   reducers: {
     takeLeadingRequest: (state, action: PayloadAction<RequestPayload>) =>
@@ -208,4 +208,4 @@ const CacheBoltSlice = createSlice({
 });
 
 export const { reducer, actions, name, caseReducers, getInitialState } =
-  CacheBoltSlice;
+  SnapFetchSlice;
