@@ -125,6 +125,7 @@ export interface Options {
   filter?: { [key: string]: number | boolean | string | undefined | null };
   expirationTime?: number | undefined;
   skip?: boolean;
+  single?: boolean;
 }
 
 export type Method =

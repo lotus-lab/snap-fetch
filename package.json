@@ -1,9 +1,9 @@
 {
   "name": "cachebolt",
-  "version": "0.0.1",
-  "main": "./lib/cjs/index.js",
-  "module": "./lib/esm/index.js",
-  "types": "./lib/esm/src/index.d.ts",
+  "version": "0.0.8",
+  "main": "./lib/src/index.js",
+  "module": "./lib/src/index.js",
+  "types": "./lib/src/index.d.ts",
   "keywords": [
     "container",
     "container component",
@@ -23,7 +23,6 @@
     "@reduxjs/toolkit": "^2.0.1",
     "@rollup/plugin-commonjs": "^22.0.2",
     "@rollup/plugin-node-resolve": "^13.3.0",
-    "@types/lodash": "^4.14.202",
     "@types/node": "^20.11.5",
     "@types/react": "^18.0.15",
     "deepmerge": "^4.2.2",
@@ -37,9 +36,7 @@
     "rollup-plugin-typescript2": "^0.32.1",
     "typescript": "^5.3.3"
   },
-  "dependencies": {
-    "lodash": "^4.17.21"
-  },
+  "dependencies": {},
   "peerDependencies": {
     "@reduxjs/toolkit": "^2.0.1",
     "react": "^18.2.0",

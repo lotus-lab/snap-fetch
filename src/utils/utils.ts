@@ -1,5 +1,8 @@
 import { useDispatch } from "react-redux";
-import { APiConfig, Method, RequestPayload, actions } from "../index";
+// import { APiConfig, Method, RequestPayload, actions } from "";
+import { APiConfig, Method, RequestPayload } from "../types/types";
+import { actions } from "../toolkit";
+
 import { useCallback, useEffect } from "react";
 
 export const useSetBaseConfiguration = (requestInit: APiConfig) => {
@@ -46,3 +49,49 @@ export const fetcher = ({
     }
   );
 };
+
+export function isEmpty(value: any): boolean {
+  if (value === null || value === undefined) {
+    return true;
+  }
+
+  if (
+    typeof value === "string" ||
+    value instanceof String ||
+    value instanceof Array ||
+    value instanceof Object
+  ) {
+    return Object.keys(value).length === 0;
+  }
+
+  return false;
+}
+
+export function isEqual(value: any, other: any): boolean {
+  if (value === other) {
+    return true;
+  }
+
+  if (typeof value !== typeof other) {
+    return false;
+  }
+
+  if (typeof value !== "object" || value === null || other === null) {
+    return false;
+  }
+
+  const keysA = Object.keys(value);
+  const keysB = Object.keys(other);
+
+  if (keysA.length !== keysB.length) {
+    return false;
+  }
+
+  for (const key of keysA) {
+    if (!isEqual(value[key], other[key])) {
+      return false;
+    }
+  }
+
+  return true;
+}

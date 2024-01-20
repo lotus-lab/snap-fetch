@@ -2,7 +2,7 @@
 import { useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { actions } from "./index";
+import { actions } from "./toolkit";
 import {
   selectMutationsData,
   selectCacheBoltApiConfig,

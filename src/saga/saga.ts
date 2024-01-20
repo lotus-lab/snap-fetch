@@ -20,8 +20,7 @@ import {
   InvalidateCachePayload,
   RequestPayload,
 } from "../types/types";
-import { isEqual } from "lodash";
-import { fetcher } from "src/utils/utils";
+import { isEqual, fetcher } from "../utils/utils";
 
 function* fetchDataSaga(action: PayloadAction<RequestPayload>) {
   const {

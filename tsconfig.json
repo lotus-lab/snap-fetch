@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "outDir": "dist/esm",
+    "outDir": "dist/esm/src",
     "module": "ESNext",
     "target": "ES5",
     "lib": [

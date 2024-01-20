@@ -8,9 +8,9 @@ const baseConfig = createBasicConfig();
 
 export default merge(baseConfig, [
   {
-    input: "./dist/esm/index.js",
+    input: "./dist/esm/src/index.js",
     output: {
-      dir: "lib/esm",
+      dir: "lib/src",
       format: "esm",
       exports: "named",
     },

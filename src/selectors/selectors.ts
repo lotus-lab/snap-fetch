@@ -10,7 +10,7 @@ import {
   Tags,
 } from "../types/types";
 import { endpointInitial } from "../constants";
-import { isEqual } from "lodash";
+import { isEqual } from "../utils/utils";
 
 const selectSlice = (state: any) => state;
 const selectRQuerySlice: (state: any) => QueryState = createSelector(
