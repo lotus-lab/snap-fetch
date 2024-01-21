@@ -96,7 +96,7 @@ export type InvalidateCachePayload = {
 export interface Options {
   searchTerm?: string;
   filter?: { [key: string]: number | boolean | string | undefined | null };
-  expirationTime?: number | undefined;
+  pollingInterval?: number;
   skip?: boolean;
   single?: boolean;
 }
@@ -152,3 +152,10 @@ export interface MutationOptions<T> {
 export interface MutationRequestOptions<T>
   extends MutationOptions<T>,
     Omit<CreateApiOptions, "tags"> {}
+
+export type DataCache = {
+  [key: string]: {
+    alreadyExecuted: boolean;
+    filters: string;
+  };
+};

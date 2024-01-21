@@ -1,15 +1,25 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useCallback, useEffect, useRef } from "react";
-import { EndpointKey, RequestOptions, RequestPayload } from "./types/types";
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import {
+  DataCache,
+  EndpointKey,
+  RequestOptions,
+  RequestPayload,
+  SnapFetchResult,
+} from "./types/types";
 import { actions } from "./toolkit";
 import { useDispatch, useSelector } from "react-redux";
 import {
   selectQueriesData,
   selectSnapFetchApiConfig,
 } from "./selectors/selectors";
-import { SnapFetchResult } from "./types/types";
+
 import { usePagination } from "./utils/usePagination";
 import { isEmpty, isEqual } from "./utils/utils";
+
+const dataCache: DataCache = {};
 
 export const useSnapFetchQuery = <T>(
   endpoint: EndpointKey,
@@ -22,7 +32,6 @@ export const useSnapFetchQuery = <T>(
 
   const {
     baseUrl,
-    expirationTime: baseExpirationTime,
     disableCaching: baseDisableCaching,
     customFetchFunction,
     ...rest
@@ -38,17 +47,17 @@ export const useSnapFetchQuery = <T>(
     tags,
     filter = {},
     skip = false,
-    expirationTime = baseExpirationTime ?? 60,
     searchTerm,
     effect = "takeEvery",
     disableCaching = baseDisableCaching ?? false,
     single,
+    pollingInterval,
   } = requestOptions;
 
   const filterString = JSON.stringify(filter);
   const paginationStringSize = JSON.stringify(paginationOptions?.size);
   const paginationStringPageNo = JSON.stringify(paginationOptions.pageNo);
-
+  const allFilters = `${filterString}${paginationStringPageNo}${paginationStringSize}`;
   const tagsString = JSON.stringify(tags);
   const fetchFunctionString = JSON.stringify(customFetchFunction);
 
@@ -58,7 +67,11 @@ export const useSnapFetchQuery = <T>(
   const sizeRef = useRef(paginationOptions.size);
 
   const fetchData = useCallback(async () => {
-    if (baseUrl) {
+    if (
+      baseUrl &&
+      (!dataCache[endpoint]?.alreadyExecuted ||
+        !isEqual(allFilters, dataCache[endpoint]?.filters))
+    ) {
       const queryParams = new URLSearchParams("");
       if (searchTerm) {
         queryParams.set(searchTerm, encodeURIComponent(searchTerm));
@@ -86,7 +99,11 @@ export const useSnapFetchQuery = <T>(
         query: true,
         mutation: false,
         queryParams,
-        createdAt: new Date(),
+      };
+
+      dataCache[endpoint] = {
+        alreadyExecuted: true,
+        filters: allFilters,
       };
 
       switch (effect) {
@@ -113,38 +130,72 @@ export const useSnapFetchQuery = <T>(
     searchTerm,
     filterString,
     baseUrl,
-    expirationTime,
   ]);
 
-  useEffect(() => {
-    if (!skip && disableCaching) {
-      fetchData();
-    } else if (!disableCaching && !skip) {
-      if (isEmpty(snapFetchData.data)) {
-        fetchData();
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchData, skip, isEmpty(snapFetchData.data), disableCaching]);
+  /**@AdditionalChecks */
 
-  useEffect(() => {
+  const queryParamsChanged = useMemo(() => {
     if (
       (!skip && !isEqual(filter, filterRef.current)) ||
       (!skip && !isEqual(pageNoRef.current, paginationOptions.pageNo)) ||
       (!skip && !isEqual(sizeRef.current, paginationOptions.size))
     ) {
-      fetchData();
+      return true;
     }
+    return false;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     skip,
-    fetchData,
     filterString,
     paginationStringPageNo,
     paginationStringSize,
     pageNoRef,
     filterRef,
   ]);
+
+  useEffect(() => {
+    if ((!skip && disableCaching) || queryParamsChanged) {
+      fetchData();
+    }
+  }, [fetchData, skip, disableCaching, queryParamsChanged]);
+
+  useEffect(() => {
+    if (!disableCaching && !skip) {
+      if (isEmpty(snapFetchData.data)) {
+        fetchData();
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [disableCaching, isEmpty(snapFetchData.data), fetchData, skip]);
+
+  /**@Polling */
+
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const stopTimer = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
+
+  const startTimer = useCallback(() => {
+    stopTimer();
+
+    if (pollingInterval) {
+      timerRef.current = setInterval(() => {
+        fetchData();
+      }, pollingInterval * 1000);
+    }
+  }, [pollingInterval, fetchData, stopTimer]);
+
+  useEffect(() => {
+    startTimer();
+
+    return () => {
+      stopTimer();
+    };
+  }, [fetchData, startTimer, stopTimer]);
 
   return {
     refetch: fetchData,
