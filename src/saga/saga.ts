@@ -31,7 +31,7 @@ function* fetchDataSaga(action: PayloadAction<RequestPayload>) {
     mutation,
     query,
     fetchFunctionIsOutsider,
-
+    hashKey,
     invalidateTags,
   } = action.payload;
 
@@ -73,10 +73,16 @@ function* fetchDataSaga(action: PayloadAction<RequestPayload>) {
 
       yield all(arrayOfPuts);
     }
-    yield put(actions.success({ data, endpoint, mutation, query }));
+    yield put(actions.success({ data, endpoint, mutation, query, hashKey }));
   } catch (err) {
     yield put(
-      actions.failure({ endpoint, error: err as Error, query, mutation })
+      actions.failure({
+        endpoint,
+        error: err as Error,
+        query,
+        mutation,
+        hashKey,
+      })
     );
     if (reject) {
       reject(err);
@@ -96,6 +102,7 @@ function* invalidateCatchSaga(action: PayloadAction<InvalidateCachePayload>) {
         ...queryCatchData,
         fetchFunctionIsOutsider,
         endpoint: queryCatchData.endpoint as string,
+        hashKey: queryCatchData.hashKey as string,
       })
     );
 
@@ -128,6 +135,7 @@ function* invalidateCatchSaga(action: PayloadAction<InvalidateCachePayload>) {
           endpoint: queryCatchData.endpoint,
           mutation: false,
           query: true,
+          hashKey: queryCatchData.hashKey as string,
         })
       );
     }
@@ -138,6 +146,7 @@ function* invalidateCatchSaga(action: PayloadAction<InvalidateCachePayload>) {
         error: err as Error,
         query: true,
         mutation: false,
+        hashKey: queryCatchData.hashKey as string,
       })
     );
   }

@@ -95,3 +95,19 @@ export function isEqual(value: any, other: any): boolean {
 
   return true;
 }
+
+export async function generateUniqueId(
+  inputString: string,
+  length: number = 8
+) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(inputString);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const base64String = btoa(String.fromCharCode(...hashArray));
+  const truncatedId = base64String
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .substring(0, length);
+
+  return truncatedId;
+}

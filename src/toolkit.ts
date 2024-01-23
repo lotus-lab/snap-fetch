@@ -30,7 +30,8 @@ const requestActions: CaseReducer<QueryState, PayloadAction<RequestPayload>> = (
   state,
   action
 ) => {
-  const { endpoint, tags, mutation, query, queryParams } = action.payload;
+  const { endpoint, tags, mutation, query, queryParams, hashKey } =
+    action.payload;
 
   const requestData = {
     error: undefined,
@@ -42,11 +43,12 @@ const requestActions: CaseReducer<QueryState, PayloadAction<RequestPayload>> = (
     query,
     endpoint,
     queryParams,
+    hashKey,
   };
 
-  if (query) {
-    state.endpoints.queries[endpoint] = {
-      ...state.endpoints.queries[endpoint],
+  if (query && hashKey) {
+    state.endpoints.queries[hashKey as string] = {
+      ...state.endpoints.queries[hashKey as string],
       ...requestData,
     };
   }
@@ -73,7 +75,7 @@ const SnapFetchSlice = createSlice({
       state,
       action: PayloadAction<RequestPayload & EndpointResult>
     ) => {
-      const { endpoint, mutation, query } = action.payload;
+      const { endpoint, mutation, query, hashKey } = action.payload;
       const loadingData = {
         isLoading: true,
         error: undefined,
@@ -81,9 +83,9 @@ const SnapFetchSlice = createSlice({
         success: false,
       };
 
-      if (query) {
-        state.endpoints.queries[endpoint] = {
-          ...state.endpoints.queries[endpoint],
+      if (query && hashKey) {
+        state.endpoints.queries[hashKey] = {
+          ...state.endpoints.queries[hashKey],
           ...loadingData,
         };
       }
@@ -97,7 +99,7 @@ const SnapFetchSlice = createSlice({
     },
 
     success: (state, action: PayloadAction<RequestSuccessPayload>) => {
-      const { endpoint, data, mutation, query } = action.payload;
+      const { endpoint, data, mutation, query, hashKey } = action.payload;
       const successData = {
         data,
         isLoading: false,
@@ -106,9 +108,9 @@ const SnapFetchSlice = createSlice({
         success: true,
       };
 
-      if (query) {
-        state.endpoints.queries[endpoint] = {
-          ...state.endpoints.queries[endpoint],
+      if (query && hashKey) {
+        state.endpoints.queries[hashKey] = {
+          ...state.endpoints.queries[hashKey],
           ...successData,
         };
       }
@@ -121,16 +123,16 @@ const SnapFetchSlice = createSlice({
       }
     },
     failure: (state, action: PayloadAction<RequestErrorPayload>) => {
-      const { endpoint, error, mutation, query } = action.payload;
+      const { endpoint, error, mutation, query, hashKey } = action.payload;
       const failureData = {
         isLoading: false,
         error,
         isError: true,
         success: false,
       };
-      if (query) {
-        state.endpoints.queries[endpoint] = {
-          ...state.endpoints.queries[endpoint],
+      if (query && hashKey) {
+        state.endpoints.queries[hashKey] = {
+          ...state.endpoints.queries[hashKey],
           ...failureData,
         };
       }
@@ -142,11 +144,11 @@ const SnapFetchSlice = createSlice({
       }
     },
     setPagination(state, action: PayloadAction<RequestPaginationPayload>) {
-      const { endpoint, pagination, mutation, query } = action.payload;
+      const { endpoint, pagination, mutation, query, hashKey } = action.payload;
 
-      if (query) {
-        state.endpoints.queries[endpoint] = {
-          ...state.endpoints.queries[endpoint],
+      if (query && hashKey) {
+        state.endpoints.queries[hashKey] = {
+          ...state.endpoints.queries[hashKey],
           pagination,
         };
       }
@@ -158,9 +160,9 @@ const SnapFetchSlice = createSlice({
       }
     },
     clearState: (state, action: PayloadAction<QueryType>) => {
-      const { endpoint, mutation, query } = action.payload;
-      if (query) {
-        state.endpoints.queries[endpoint] = endpointInitial;
+      const { endpoint, mutation, query, hashKey } = action.payload;
+      if (query && hashKey) {
+        state.endpoints.queries[hashKey] = endpointInitial;
       }
       if (mutation) {
         state.endpoints.mutations[endpoint] = endpointInitial;
@@ -176,7 +178,7 @@ const SnapFetchSlice = createSlice({
     },
 
     invalidateCache: (state, action: PayloadAction<InvalidateCachePayload>) => {
-      const { endpoint, tags, mutation, query, queryParams } =
+      const { endpoint, tags, mutation, query, queryParams, hashKey } =
         action.payload.requestPayload;
 
       const requestData = {
@@ -191,9 +193,9 @@ const SnapFetchSlice = createSlice({
         queryParams,
       };
 
-      if (query) {
-        state.endpoints.queries[endpoint] = {
-          ...state.endpoints.queries[endpoint],
+      if (query && hashKey) {
+        state.endpoints.queries[hashKey] = {
+          ...state.endpoints.queries[hashKey],
           ...requestData,
         };
       }

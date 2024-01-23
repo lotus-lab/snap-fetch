@@ -9,6 +9,7 @@ export {
 
 export { useSnapFetchQuery } from "./useSnapFetchQuery";
 export { useSnapFetchMutation } from "./useSnapFetchMutation";
+export { useGenHashKey } from "./useGenHashKey";
 export { rootSnapFetchSaga } from "./saga/saga";
 
 export * from "./types/types";

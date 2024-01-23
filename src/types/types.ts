@@ -29,6 +29,8 @@ export interface RequestPayload extends RequestInit {
   queryParams?: any;
   method?: Method;
   createdAt?: Date;
+  pollingInterval?: number;
+  hashKey?: EndpointKey;
 }
 export type UseQueryOptions = {
   requestInit?: RequestInit;
@@ -76,6 +78,7 @@ export type EndpointResult = {
   endpoint?: EndpointKey | undefined;
   queryParams?: any;
   createdAt?: Date;
+  hashKey?: EndpointKey;
 };
 
 export type EndpointState = {
@@ -126,6 +129,7 @@ export type QueryType = {
   query?: boolean;
   mutation?: boolean;
   endpoint: EndpointKey;
+  hashKey?: EndpointKey;
 };
 
 export interface RequestSuccessPayload extends QueryType {

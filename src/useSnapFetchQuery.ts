@@ -18,6 +18,7 @@ import {
 
 import { usePagination } from "./utils/usePagination";
 import { isEmpty, isEqual } from "./utils/utils";
+import { useGenHashKey } from "./useGenHashKey";
 
 const dataCache: DataCache = {};
 
@@ -26,8 +27,13 @@ export const useSnapFetchQuery = <T>(
   requestOptions: RequestOptions = {}
 ): SnapFetchResult<T> => {
   const dispatch = useDispatch();
+
+  const filterString = JSON.stringify(requestOptions.filter ?? {});
+
+  const { hashKey } = useGenHashKey(`${endpoint}${filterString}`);
+
   const snapFetchData = useSelector((state: any) =>
-    selectQueriesData(state, endpoint)
+    selectQueriesData(state, hashKey)
   );
 
   const {
@@ -54,7 +60,7 @@ export const useSnapFetchQuery = <T>(
     pollingInterval,
   } = requestOptions;
 
-  const filterString = JSON.stringify(filter);
+  // const filterString = JSON.stringify(filter);
   const paginationStringSize = JSON.stringify(paginationOptions?.size);
   const paginationStringPageNo = JSON.stringify(paginationOptions.pageNo);
   const allFilters = `${filterString}${paginationStringPageNo}${paginationStringSize}`;
@@ -68,9 +74,10 @@ export const useSnapFetchQuery = <T>(
 
   const fetchData = useCallback(async () => {
     if (
+      hashKey &&
       baseUrl &&
-      (!dataCache[endpoint]?.alreadyExecuted ||
-        !isEqual(allFilters, dataCache[endpoint]?.filters))
+      (!dataCache[hashKey]?.alreadyExecuted ||
+        !isEqual(allFilters, dataCache[hashKey]?.filters))
     ) {
       const queryParams = new URLSearchParams("");
       if (searchTerm) {
@@ -99,9 +106,10 @@ export const useSnapFetchQuery = <T>(
         query: true,
         mutation: false,
         queryParams,
+        hashKey,
       };
 
-      dataCache[endpoint] = {
+      dataCache[hashKey] = {
         alreadyExecuted: true,
         filters: allFilters,
       };
@@ -130,6 +138,7 @@ export const useSnapFetchQuery = <T>(
     searchTerm,
     filterString,
     baseUrl,
+    hashKey,
   ]);
 
   /**@AdditionalChecks */

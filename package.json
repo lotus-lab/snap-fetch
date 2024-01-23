@@ -1,13 +1,16 @@
 {
   "name": "snap-fetch",
-  "version": "1.0.7",
+  "version": "1.0.12",
   "main": "./lib/src/index.js",
   "module": "./lib/src/index.js",
   "types": "./lib/src/index.d.ts",
   "keywords": [
-    "container",
-    "container component",
-    "shipping container"
+    "fetching data",
+    "react",
+    "react-redux",
+    "redux-toolkit",
+    "snap-fetch",
+    "snap-fetch query"
   ],
   "files": [
     "/lib"

@@ -1,14 +1,32 @@
-# SnapFetch Documentation
+
+# SnapFetch Query Overview
+
+
+## **WHAT WE'LL LEARN**
+- What Snap-Fetch is and what problems it solves
+- What APIs are included in Snap-Fetch
+- Basic usage
+
 
 ---
 
-# SnapFetch
+## Snap-Fetch
 
-SnapFetch is an npm package built for React that allows you to fetch data from an API, cache it, and store it in Redux using Redux Toolkit and Redux Saga. It provides intuitive hooks for performing queries and mutations, as well as a hook for configuring global options.
+**Snap-Fetch** is a light weight **data fetching tool** built for React that allows you to fetch data from an API, **cache it**, and store it in **Redux** using **Redux Toolkit** and **Redux Saga**. It provides **intuitive hooks** for performing *8queries** and **mutations**, as well as a hook for configuring **global api options**.
+
+
+## Motivation
+
+Web applications typically require data from a server in order to display it. They also typically need to update that data, communicate those modifications to the server, and maintain the cached data on the client in sync with the data on the server. This is made more hard by the requirement to include additional behaviors utilized in today's applications:
+
+- Tracking the loading state to show UI spinners.
+- Avoiding multiple requests for the same data.
+- Optimistic updates make the UI feel quicker.
+- Managing cache lifetimes as the user interacts with the UI.
 
 ## Installation
 
-You can install SnapFetch using npm or yarn:
+You can install Snap-Fetch using npm or yarn:
 
 ```shell
 npm install snap-fetch
@@ -66,25 +84,126 @@ export function configureAppStore() {
 
 ```
 
+
+## What's included
+1. [useSetBaseConfiguration](#useSetBaseConfiguration)
+2. [useSnapFetchQuery](#useSnapFetchQuery)
+3. [useSnapFetchMutation](#useSnapFetchMutation)
+
+### useSetBaseConfiguration (Base Configuration)
+
+The `useSetBaseConfiguration` hook is used to configure the base options for SnapFetch.
+
+### Usage
+
+```javascript
+useSetBaseConfiguration(options);
+```
+
+### Parameters
+
+- `options` (object): The configuration options.
+
+#### Options
+
+The `options` object accepts the following properties:
+
+- `baseUrl` (string, required): The base URL for the API. (**Required**)
+- `disableCaching` (boolean): If set to `true`, caching will be disabled, can be overridden by individual query options.
+- `customFetchFunction` ((endpoint: string) => **Promise(Response)**): A custom fetch function to use for making API requests. If you don't want to use the built in fetcher.
+- `headers` (Headers): Additional headers to be included in each request.
+- Fetch API RequestInitiator...
+
+```javascript
+
+// To root of you project like App.tsx main.tsx
+
+import { useSetBaseConfiguration } from "snap-fetch"
+const baseUrl = "https://jsonplaceholder.typicode.com";
+
+  useSetBaseConfiguration({
+    baseUrl, // Required
+    disableCaching: boolean, // if true caching will be disabled, // this is global, can be overridden by individual disableCaching properties
+    // Below has no effect if you are using your own fetch function
+    headers: new Headers({
+      Authorization: `Bearer ${token}`,
+    }),
+  });
+
+```
+
+
+### useSnapFetchQuery (Query Hook)
+
+This hook allows you to fetch data from the server using the sagas and store it in the redux store, it is configured to know if the same endpoint is called with the same queryParams, it would only refetch data if the cache is empty or mutated by mutation, or if queryParams are changed...
+
+It uses the endpoint + queryParams to cache the state, which allow it to avoid unnecessary fetch requests.
+
+it accepts two parameters
+
+1. The endpoint - is the endpoint which will be used to fetch data by combining with the baseUrl 
+2. Request options - is as follows:
+```javascript
+
+type RequestOptions = {
+  effect?: "takeLatest" | "takeLeading" | "takeEvery"; // saga effect, default is "takeEvery"
+  method?: Method;
+  disableCaching?: boolean; // will disable caching for the current endpoint request
+  fetchFunction?: (endpoint: string) => Promise<Response>; // custom fetch function if you don't like the built-in.
+  tags?: Tags; // Tags will be used to invalidate on mutation requests.
+  filter?: { [key: string]: number | boolean | string | undefined | null }; // your filters except for pagination. 
+  pollingInterval?: number; // polling interval for polling requests
+  skip?: boolean; // skip on mount request for the current endpoint
+  single?: boolean; // to tell the snap-fetcher query you don't want to use pagination.
+}
+
+```
+
+### Query Result
+
+The `useSnapFetchQuery` hook returns a query result object with the following properties:
+useSnapFetchQuery is a generic type function, the type is used to tell the type of the data returned from the api call.
+
+- `data` (T | undefined): The fetched data.
+- `isLoading` (boolean): A flag indicating if the query is in progress.
+- `isError` (boolean): A flag indicating if an error occurred during the query.
+- `error` (Error | undefined): The error object, if any.
+- `paginationOptions` (object): The pagination options for the query.
+- `refetch` (function): A function to manually trigger a refetch of the query.
+
+#### Pagination Options
+
+Queries have built in pagination support the result of useSnapFetchQuery will return a paginationOptions object with the following properties:
+
+```javascript
+
+{
+    lastPage: number;
+    currentShowingItems: number | undefined;
+    totalItems: number;
+    changePageNo: (pageNo: number) => void;
+    changeSize: (size: number) => void;
+    pageNo: number;
+    size: number;
+}
+
+```
+
+- Use the the changePageNo and changeSize to update the pagination. 
+
 ## Usage
-
-To use SnapFetch in your React application, you need to have Redux and Redux Saga set up. Once you have those dependencies installed and configured, you can start using SnapFetch.
-
-### 1. Importing
 
 Import the necessary hooks from the `snap-fetch` package:
 
 ```javascript
-import { useSnapFetchQuery, useSnapFetchMutation, useSetBaseConfiguration } from 'snap-fetch';
+import { useSnapFetchQuery } from 'snap-fetch';
 ```
 
 ### 2. Querying Data
 
-To perform a query and fetch data from the API, use the `useSnapFetchQuery` hook. Here's an example:
-
 ```javascript
 const MyComponent = () => {
-  const { data, isLoading, error } = useSnapFetchQuery('users', {
+  const { data, isLoading, error } = useSnapFetchQuery<Users>('users', {
     tags:['getUsers']
   });
 
@@ -105,6 +224,32 @@ const MyComponent = () => {
   );
 };
 ```
+
+### useSnapFetchMutation (Mutation Hook)
+
+This hook allows you to manipulate the data and make mutation calls it will automatically revalidate the cache if queries with the same endpoint are available.
+
+**It accept to parameters:**
+1. The endpoint
+2. Options:
+
+```javascript
+type RequestOptions = {
+  effect?: "takeLatest" | "takeLeading" | "takeEvery"; // saga effect, default is "takeLeading"
+  method?: Method;
+  fetchFunction?: (endpoint: string) => Promise<Response>; // custom fetch function if you don't like the built-in.
+  invalidateTags?: Tags; // Tags will be used to invalidate on mutation requests.
+  body?: any; // Request body, will automatically remove the body if you accidentally use methods like "GET" or "HEAD"
+}
+```
+
+### Mutation Result
+
+- `data` (T | undefined): The returned data.
+- `isLoading` (boolean): A flag indicating if the query is in progress.
+- `isError` (boolean): A flag indicating if an error occurred during the query.
+- `error` (Error | undefined): The error object, if any.
+- `mutate` (function): A function to trigger a fetch request.
 
 ### 3. Mutating Data
 
@@ -143,110 +288,6 @@ const MyComponent = () => {
   );
 };
 ```
-
-## Table of Contents
-
-1. [useSetBaseConfiguration](#useSetBaseConfiguration)
-2. [useSnapFetchQuery](#useSnapFetchQuery)
-3. [useSnapFetchMutation](#useSnapFetchMutation)
-
 ---
 
-## useSetBaseConfiguration
-
-The `useSetBaseConfiguration` hook is used to configure the base options for SnapFetch.
-
-### Usage
-
-```javascript
-useSetBaseConfiguration(options);
-```
-
-### Parameters
-
-- `options` (object): The configuration options.
-
-#### Options
-
-The `options` object accepts the following properties:
-
-- `baseUrl` (string, required): The base URL for the API.
-- `expirationTime` (number): The global expiration time in seconds. This can be overridden by individual `expirationTime` properties.
-- `disableCaching` (boolean): If set to `true`, caching will be disabled.
-- `headers` (Headers): Additional headers to be included in each request.
-- `customFetchFunction` ((endpoint: string) => Promise<Response>): A custom fetch function to use for making API requests.
-- `method` (string): The HTTP method to use for requests.
-
-
----
-
-## useSnapFetchQuery
-
-The `useSnapFetchQuery` hook is used to perform queries and fetch data from the API.
-
-### Usage
-
-```javascript
-const queryResult = useSnapFetchQuery(endpoint, requestOptions);
-```
-
-### Parameters
-
-- `endpoint` (string): The API endpoint to query.
-- `requestOptions` (object): The request options.
-
-#### RequestOptions
-
-The `requestOptions` object accepts the following properties:
-
-- `effect` ("takeLatest" | "takeLeading" | "takeEvery"): The effect type for handling concurrent requests.
-- `method` (string): The HTTP method to use for the request.
-- `disableCaching` (boolean): If set to `true`, caching will be disabled for this query.
-- `fetchFunction` ((endpoint: string) => Promise<Response>): A custom fetch function to use for this query.
-- `tags` (array): An array of tags associated with the query.
-
-### Query Result
-
-The `useSnapFetchQuery` hook returns a query result object with the following properties:
-
-- `data` (T | undefined): The fetched data.
-- `isLoading` (boolean): A flag indicating if the query is in progress.
-- `isError` (boolean): A flag indicating if an error occurred during the query.
-- `error` (Error | undefined): The error object, if any.
-- `paginationOptions` (object): The pagination options for the query.
-- `refetch` (function): A function to manually trigger a refetch of the query.
-
-#### Pagination Options
-
-The `paginationOptions` object is retrieved using the `usePagination` function and provides pagination-related functionalities. Refer to the `usePagination` hook documentation for more details.
-
----
-
-This concludes the updated documentation for the `useSnapFetchQuery` hook. For more details and examples, please refer to the documentation provided above.
-
----
-
-## useSnapFetchMutation
-
-The `useSnapFetchMutation` hook is used to perform mutations and send data to the API.
-
-### Usage
-
-```javascript
-const { mutate } = useSnapFetchMutation(endpoint, requestOptions);
-```
-
-### Parameters
-
-- `endpoint` (string): The API endpoint for the mutation.
-- `requestOptions` (object): The request options.
-
-#### RequestOptions
-
-The `requestOptions` object accepts the same properties as the `requestOptions` object in `useSnapFetchQuery`.
-
----
-
-This concludes the documentation for the SnapFetch npm package. For more details and examples, please refer to the specific hook sections above.
-
----
+For further information please see the full documentation.

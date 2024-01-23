@@ -23,11 +23,11 @@ export const selectQueryData: (state: any) => EndpointState | undefined =
 
 export const selectQueriesData: (
   state: any,
-  endpoint: EndpointKey
+  hashKey: EndpointKey
 ) => EndpointResult = createSelector(
-  [selectQueryData, (_state: any, endpoint: EndpointKey) => endpoint],
+  [selectQueryData, (_state: any, hashKey: EndpointKey) => hashKey],
 
-  (state, endpoint) => state?.queries?.[endpoint] || endpointInitial
+  (state, hashKey) => state?.queries?.[hashKey] || endpointInitial
 );
 
 export const selectQueriesDataByTags: (

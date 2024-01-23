@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { actions } from "./toolkit";
@@ -96,6 +96,12 @@ export const useSnapFetchMutation = <T>(
       invalidateTagsString,
     ]
   );
+
+  useEffect(() => {
+    return () => {
+      clear();
+    };
+  }, []);
 
   return {
     mutate,
