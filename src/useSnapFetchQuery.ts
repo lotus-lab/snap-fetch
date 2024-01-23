@@ -36,12 +36,14 @@ export const useSnapFetchQuery = <T>(
     selectQueriesData(state, hashKey)
   );
 
+  const baseConfig = useSelector(selectSnapFetchApiConfig);
+
   const {
     baseUrl,
     disableCaching: baseDisableCaching,
     customFetchFunction,
     ...rest
-  } = useSelector(selectSnapFetchApiConfig);
+  } = baseConfig ?? {};
 
   /** @PaginationSection */
   const paginationOptions = usePagination({
@@ -72,74 +74,78 @@ export const useSnapFetchQuery = <T>(
   const pageNoRef = useRef(paginationOptions.pageNo);
   const sizeRef = useRef(paginationOptions.size);
 
-  const fetchData = useCallback(async () => {
-    if (
-      hashKey &&
-      baseUrl &&
-      (!dataCache[hashKey]?.alreadyExecuted ||
-        !isEqual(allFilters, dataCache[hashKey]?.filters))
-    ) {
-      const queryParams = new URLSearchParams("");
-      if (searchTerm) {
-        queryParams.set(searchTerm, encodeURIComponent(searchTerm));
+  const fetchData = useCallback(
+    async (isPolling?: boolean) => {
+      if (
+        (hashKey &&
+          baseUrl &&
+          (!dataCache[hashKey]?.alreadyExecuted ||
+            !isEqual(allFilters, dataCache[hashKey]?.filters))) ||
+        isPolling
+      ) {
+        const queryParams = new URLSearchParams("");
+        if (searchTerm) {
+          queryParams.set(searchTerm, encodeURIComponent(searchTerm));
+        }
+
+        if (filter) {
+          Object.keys(filter).forEach((key) => {
+            if (filter[key] !== undefined && filter[key] !== "")
+              queryParams.set(key, filter[key] as string);
+          });
+        }
+
+        if (paginationOptions.pageNo && !single) {
+          queryParams.set("pageNo", `${paginationOptions.pageNo ?? ""}`);
+        }
+        if (paginationOptions.size && !single) {
+          queryParams.set("size", `${paginationOptions.size ?? ""}`);
+        }
+
+        const payload: RequestPayload = {
+          endpoint,
+          ...rest,
+          tags,
+          fetchFunctionIsOutsider: !!customFetchFunction,
+          query: true,
+          mutation: false,
+          queryParams,
+          hashKey,
+        };
+
+        dataCache[hashKey] = {
+          alreadyExecuted: true,
+          filters: allFilters,
+        };
+
+        switch (effect) {
+          case "takeLatest":
+            dispatch(actions.takeLatestRequest(payload));
+            break;
+          case "takeLeading":
+            dispatch(actions.takeLeadingRequest(payload));
+            break;
+          default:
+            dispatch(actions.takeEveryRequest(payload));
+        }
       }
 
-      if (filter) {
-        Object.keys(filter).forEach((key) => {
-          if (filter[key] !== undefined && filter[key] !== "")
-            queryParams.set(key, filter[key] as string);
-        });
-      }
-
-      if (paginationOptions.pageNo && !single) {
-        queryParams.set("pageNo", `${paginationOptions.pageNo ?? ""}`);
-      }
-      if (paginationOptions.size && !single) {
-        queryParams.set("size", `${paginationOptions.size ?? ""}`);
-      }
-
-      const payload: RequestPayload = {
-        endpoint,
-        ...rest,
-        tags,
-        fetchFunctionIsOutsider: !!customFetchFunction,
-        query: true,
-        mutation: false,
-        queryParams,
-        hashKey,
-      };
-
-      dataCache[hashKey] = {
-        alreadyExecuted: true,
-        filters: allFilters,
-      };
-
-      switch (effect) {
-        case "takeLatest":
-          dispatch(actions.takeLatestRequest(payload));
-          break;
-        case "takeLeading":
-          dispatch(actions.takeLeadingRequest(payload));
-          break;
-        default:
-          dispatch(actions.takeEveryRequest(payload));
-      }
-    }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    endpoint,
-    fetchFunctionString,
-    tagsString,
-    paginationStringPageNo,
-    paginationStringSize,
-    dispatch,
-    effect,
-    searchTerm,
-    filterString,
-    baseUrl,
-    hashKey,
-  ]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    },
+    [
+      endpoint,
+      fetchFunctionString,
+      tagsString,
+      paginationStringPageNo,
+      paginationStringSize,
+      dispatch,
+      effect,
+      searchTerm,
+      filterString,
+      baseUrl,
+      hashKey,
+    ]
+  );
 
   /**@AdditionalChecks */
 
@@ -186,14 +192,14 @@ export const useSnapFetchQuery = <T>(
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
-  }, []);
+  }, [timerRef.current]);
 
   const startTimer = useCallback(() => {
     stopTimer();
 
     if (pollingInterval) {
       timerRef.current = setInterval(() => {
-        fetchData();
+        fetchData(true);
       }, pollingInterval * 1000);
     }
   }, [pollingInterval, fetchData, stopTimer]);

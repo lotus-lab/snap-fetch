@@ -40,12 +40,16 @@ function* fetchDataSaga(action: PayloadAction<RequestPayload>) {
   try {
     const baseApiConfig: APiConfig = yield select(selectSnapFetchApiConfig);
 
-    const response: Response = yield call(() =>
+    const response: Response & string = yield call(() =>
       fetcher({
         ...baseApiConfig,
         ...action.payload,
       })
     );
+
+    if (!response.ok) {
+      throw new Error(response);
+    }
 
     if (fetchFunctionIsOutsider) {
       data = yield response;

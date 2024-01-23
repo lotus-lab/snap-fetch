@@ -169,7 +169,6 @@ const SnapFetchSlice = createSlice({
       }
     },
     setApiConfig(state, action: PayloadAction<APiConfig>) {
-      //@ts-ignore
       state.apiConfig = action.payload;
     },
 

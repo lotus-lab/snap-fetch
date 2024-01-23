@@ -1,22 +1,4 @@
-import { useDispatch } from "react-redux";
-// import { APiConfig, Method, RequestPayload, actions } from "";
-import { APiConfig, Method, RequestPayload } from "../types/types";
-import { actions } from "../toolkit";
-
-import { useCallback, useEffect } from "react";
-
-export const useSetBaseConfiguration = (requestInit: APiConfig) => {
-  const requestString = JSON.stringify(requestInit);
-  const dispatch = useDispatch();
-  const setBaseConfiguration = useCallback(() => {
-    dispatch(actions.setApiConfig(requestInit));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, requestString]);
-
-  useEffect(() => {
-    setBaseConfiguration();
-  }, [setBaseConfiguration]);
-};
+import { Method, RequestPayload } from "../types/types";
 
 interface FetcherOptions extends RequestPayload, RequestInit {
   customFetchFunction?: ((endpoint: string) => Promise<Response>) | undefined;
@@ -34,20 +16,20 @@ export const fetcher = ({
   method,
   ...rest
 }: FetcherOptions) => {
+  const url = formatEndpoint(baseUrl, endpoint as string);
   if (customFetchFunction) {
-    return customFetchFunction(`${baseUrl}/${endpoint}${`?${queryParams}`}`);
+    return customFetchFunction(
+      `${url}${queryParams?.size ? `?${queryParams}` : ""}`
+    );
   }
 
   if (["GET", "HEAD"].includes(method as string)) {
     delete rest?.body;
   }
-  return fetch(
-    `${baseUrl}/${endpoint}${queryParams?.size ? `?${queryParams}` : ""}`,
-    {
-      method: method ?? "GET",
-      ...rest,
-    }
-  );
+  return fetch(`${url}${queryParams?.size ? `?${queryParams}` : ""}`, {
+    method: method ?? "GET",
+    ...rest,
+  });
 };
 
 export function isEmpty(value: any): boolean {
@@ -110,4 +92,16 @@ export async function generateUniqueId(
     .substring(0, length);
 
   return truncatedId;
+}
+
+export function formatEndpoint(baseUrl: string, endpoint: string): string {
+  if (endpoint.startsWith("/")) {
+    endpoint = endpoint.substring(1);
+  }
+
+  if (endpoint.endsWith("/")) {
+    endpoint = endpoint.substring(0, endpoint.length - 1);
+  }
+
+  return baseUrl + "/" + endpoint;
 }
