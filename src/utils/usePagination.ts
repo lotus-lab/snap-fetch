@@ -24,11 +24,11 @@ export const usePagination = ({
   }, [total, size]);
 
   const changePageNo = useCallback(
-    (pageNo: number) => {
+    (value: number) => {
       dispatch(
         actions.changePageNo({
           hashKey,
-          value: pageNo,
+          value,
         })
       );
     },
@@ -36,11 +36,11 @@ export const usePagination = ({
   );
 
   const changeSize = useCallback(
-    (size: number) => {
+    (value: number) => {
       dispatch(
         actions.changeSize({
           hashKey,
-          value: size,
+          value,
         })
       );
     },

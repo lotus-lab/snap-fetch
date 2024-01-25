@@ -7,8 +7,12 @@ import {
   selectMutationsData,
   selectSnapFetchApiConfig,
 } from "./selectors/selectors";
-import { BodyType, Method, MutationRequestOptions } from "./types/types";
-import { RequestPayload } from "./types/types";
+import {
+  BodyType,
+  Method,
+  MutationRequestOptions,
+  RequestPayload,
+} from "./types/types";
 
 export interface Result<T> {
   data?: T | undefined;
@@ -58,35 +62,50 @@ export const useSnapFetchMutation = <T>(
   const invalidateTagsString = JSON.stringify(invalidateTags);
 
   const mutate = useCallback(
-    async (handlerBody?: BodyType, requestInit?: Partial<RequestInit>) => {
-      const responseData = await new Promise<T>((resolve, reject) => {
-        const payload: RequestPayload = {
-          endpoint,
-          invalidateTags,
-          fetchFunctionIsOutsider: !!customFetchFunction,
-          resolve,
-          reject,
-          mutation: true,
-          query: false,
-          body: JSON.stringify(handlerBody ?? body),
-          method: (requestInit?.method ?? method ?? "POST") as Method,
-        };
+    async (handlerBody?: any, requestInit?: Partial<RequestInit>) => {
+      try {
+        const responseData = await new Promise<T>((resolve, reject) => {
+          let bodyType: BodyType | undefined = handlerBody;
 
-        switch (effect) {
-          case "takeLatest":
-            dispatch(actions.takeLatestRequest(payload));
-            break;
-          case "takeLeading":
-            dispatch(actions.takeLeadingRequest(payload));
-            break;
-          default:
-            dispatch(actions.takeEveryRequest(payload));
-        }
-      });
+          // Check if handlerBody is an event object
 
-      return responseData;
+          if (handlerBody instanceof Event) {
+            // Provide a default value for the body or ignore it
+            // For example, you can assign an empty object as the default body
+            bodyType = {};
+          }
+          const stringBody = JSON.stringify(bodyType || body);
+          const payload: RequestPayload = {
+            endpoint,
+            invalidateTags,
+            fetchFunctionIsOutsider: !!customFetchFunction,
+            resolve,
+            reject,
+            mutation: true,
+            query: false,
+            body: stringBody,
+            method: (requestInit?.method ?? method ?? "POST") as Method,
+          };
+
+          switch (effect) {
+            case "takeLatest":
+              dispatch(actions.takeLatestRequest(payload));
+              break;
+            case "takeLeading":
+              dispatch(actions.takeLeadingRequest(payload));
+              break;
+            default:
+              dispatch(actions.takeEveryRequest(payload));
+          }
+        });
+
+        return responseData;
+      } catch (error) {
+        throw new Error(
+          "Event are not a valid body, calling mutate with event body!"
+        );
+      }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       endpoint,
       restString,

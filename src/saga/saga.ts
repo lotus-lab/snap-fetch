@@ -20,7 +20,7 @@ import {
   InvalidateCachePayload,
   RequestPayload,
 } from "../types/types";
-import { isEqual, fetcher } from "../utils/utils";
+import { fetcher } from "../utils/utils";
 
 function* fetchDataSaga(action: PayloadAction<RequestPayload>) {
   const {
@@ -50,7 +50,7 @@ function* fetchDataSaga(action: PayloadAction<RequestPayload>) {
     if (fetchFunctionIsOutsider) {
       data = yield response;
     } else {
-      data = yield response.json();
+      data = yield response?.json();
     }
 
     if (resolve) {
@@ -60,7 +60,7 @@ function* fetchDataSaga(action: PayloadAction<RequestPayload>) {
       const allQueriesWithTag: Array<EndpointResult> = yield select((state) =>
         selectQueriesDataByTags(state, invalidateTags)
       );
-
+      console.log(allQueriesWithTag);
       const arrayOfPuts: Array<unknown> = yield allQueriesWithTag.map(
         (queryCatchData) =>
           put(
@@ -91,9 +91,8 @@ function* fetchDataSaga(action: PayloadAction<RequestPayload>) {
 }
 
 function* invalidateCatchSaga(action: PayloadAction<InvalidateCachePayload>) {
-  const { mutation, invalidateTags, fetchFunctionIsOutsider } =
-    action.payload.requestPayload;
-  const queryCatchData = action.payload.queryCatchData;
+  const { mutation, fetchFunctionIsOutsider } = action.payload.requestPayload;
+  const { queryCatchData } = action.payload;
 
   let data: unknown;
   try {
@@ -110,7 +109,7 @@ function* invalidateCatchSaga(action: PayloadAction<InvalidateCachePayload>) {
 
     if (
       mutation &&
-      isEqual(invalidateTags, queryCatchData.tags) &&
+      // isEqual(invalidateTags, queryCatchData.tags) &&
       queryCatchData.tags &&
       queryCatchData.endpoint
     ) {
@@ -123,6 +122,7 @@ function* invalidateCatchSaga(action: PayloadAction<InvalidateCachePayload>) {
           method: "GET",
         })
       );
+
       if (fetchFunctionIsOutsider) {
         data = yield response;
       } else {

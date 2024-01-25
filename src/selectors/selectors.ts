@@ -7,7 +7,7 @@ import {
   EndpointResult,
   EndpointState,
   QueryState,
-  Tags,
+  Tag,
 } from "../types/types";
 import { endpointInitial } from "../constants";
 import { isEqual } from "../utils/utils";
@@ -32,19 +32,21 @@ export const selectQueriesData: (
 
 export const selectQueriesDataByTags: (
   state: any,
-  tags: Tags
+  tags: Array<Tag>
 ) => Array<EndpointResult> = createSelector(
-  [selectQueryData, (_state: any, tags: Tags) => tags],
+  [selectQueryData, (_state: any, tags: Array<Tag>) => tags],
 
   (state, tags) => {
     if (state?.queries) {
-      const queryState = Object.values(state.queries).filter((value) =>
-        isEqual(value.tags, tags)
-      );
+      const queryState = Object.values(state.queries).filter((value) => {
+        if (Array.isArray(tags)) {
+          return tags.map((tag) => isEqual(tag, value.tags));
+        }
+        return isEqual(value.tags, tags);
+      });
       return queryState;
-    } else {
-      return [endpointInitial];
     }
+    return [endpointInitial];
   }
 );
 

@@ -16,24 +16,31 @@ export const fetcher = ({
   method,
   ...rest
 }: FetcherOptions) => {
-  try {
-    const url = formatEndpoint(baseUrl, endpoint as string);
-    if (customFetchFunction) {
-      return customFetchFunction(
-        `${url}${queryParams?.size ? `?${queryParams}` : ""}`
-      );
-    }
-
-    if (["GET", "HEAD"].includes(method as string)) {
-      delete rest?.body;
-    }
-    return fetch(`${url}${queryParams?.size ? `?${queryParams}` : ""}`, {
-      method: method ?? "GET",
-      ...rest,
-    });
-  } catch (error) {
-    throw new Error(error);
+  const url = formatEndpoint(baseUrl, endpoint as string);
+  if (customFetchFunction) {
+    return customFetchFunction(
+      `${url}${queryParams?.size ? `?${queryParams}` : ""}`
+    );
   }
+
+  if (["GET", "HEAD"].includes(method as string)) {
+    delete rest?.body;
+  }
+  return fetch(`${url}${queryParams?.size ? `?${queryParams}` : ""}`, {
+    method: method ?? "GET",
+    ...rest,
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      return response;
+    })
+    .then((data) => data)
+    .catch((error) => {
+      throw new Error(error);
+    });
 };
 
 export function isEmpty(value: any): boolean {
@@ -107,5 +114,5 @@ export function formatEndpoint(baseUrl: string, endpoint: string): string {
     endpoint = endpoint.substring(0, endpoint.length - 1);
   }
 
-  return baseUrl + "/" + endpoint;
+  return `${baseUrl}/${endpoint}`;
 }

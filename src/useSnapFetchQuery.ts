@@ -2,6 +2,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
   DataCache,
   EndpointKey,
@@ -10,7 +11,6 @@ import {
   SnapFetchResult,
 } from "./types/types";
 import { actions } from "./toolkit";
-import { useDispatch, useSelector } from "react-redux";
 import {
   selectQueriesData,
   selectSnapFetchApiConfig,
@@ -101,7 +101,7 @@ export const useSnapFetchQuery = <T>(
     [customFetchFunction]
   );
 
-  /**@Refs */
+  /** @Refs */
   const filterRef = useRef(filter);
   const pageNoRef = useRef(paginationOptions.pageNo);
   const sizeRef = useRef(paginationOptions.size);
@@ -184,7 +184,7 @@ export const useSnapFetchQuery = <T>(
     ]
   );
 
-  /**@AdditionalChecks */
+  /** @AdditionalChecks */
 
   const queryParamsChanged = useMemo(() => {
     if (
@@ -216,7 +216,13 @@ export const useSnapFetchQuery = <T>(
     }
   }, [fetchData, skip, disableCaching, queryParamsChanged, hasNoCacheData]);
 
-  /**@Polling */
+  useEffect(() => {
+    return () => {
+      delete dataCache[hashKey];
+    };
+  }, [hashKey]);
+
+  /** @Polling */
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -235,10 +241,6 @@ export const useSnapFetchQuery = <T>(
         fetchData(true);
       }, pollingInterval * 1000);
     }
-
-    return () => {
-      delete dataCache[hashKey];
-    };
   }, [pollingInterval, fetchData, stopTimer, hashKey]);
 
   useEffect(() => {

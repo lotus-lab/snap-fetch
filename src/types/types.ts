@@ -2,7 +2,6 @@
 // import { Endpoints, MaybePromise } from "./common";
 
 import { ActionCreatorWithPayload, PrepareAction } from "@reduxjs/toolkit";
-import { usePagination } from "../utils/usePagination";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -10,8 +9,8 @@ export type KeysOfEndpointSate = { [key: string]: EndpointResult };
 
 export type EndpointKey = keyof KeysOfEndpointSate;
 
-export type Tags = Array<string | number> | number | string | undefined;
-
+// export type Tags = Array<string | number> | number | string | undefined;
+export type Tag = string | number | undefined;
 export interface FetchFunctionOptions extends RequestPayload {
   method?: Method;
 }
@@ -19,8 +18,8 @@ export interface FetchFunctionOptions extends RequestPayload {
 export interface RequestPayload extends RequestInit {
   // fetchFunction: (options: FetchFunctionOptions) => Promise<Response>;
   endpoint: EndpointKey;
-  tags?: Tags;
-  invalidateTags?: Tags;
+  tags?: Tag;
+  invalidateTags?: Array<Tag>;
   fetchFunctionIsOutsider: boolean;
   resolve?: (data: any) => void;
   reject?: (reason: any) => void;
@@ -39,7 +38,7 @@ export type UseQueryOptions = {
 
 export interface CreateApiOptions {
   fetchFunction?: (endpoint: string) => Promise<Response>;
-  tags?: Tags;
+  tags?: Tag;
 }
 
 export type FetchBaseQueryOptions = {
@@ -73,7 +72,7 @@ export type EndpointResult = {
   data?: any;
   pagination?: Pagination | undefined;
   success: boolean;
-  tags?: Tags;
+  tags?: Tag;
   mutation?: boolean;
   query?: boolean;
   endpoint?: EndpointKey | undefined;
@@ -126,8 +125,18 @@ export interface RequestOptions extends CreateApiOptions, Options {
 export interface SnapFetchResult<T> extends EndpointResult {
   data?: T | undefined;
   refetch: () => void;
-  paginationOptions: ReturnType<typeof usePagination>;
+  paginationOptions: PaginationOptions;
 }
+
+export type PaginationOptions = {
+  lastPage: number;
+  currentShowingItems: number | undefined;
+  totalItems: number;
+  changePageNo: (pageNo: number) => void;
+  changeSize: (size: number) => void;
+  pageNo: number | undefined;
+  size: number | undefined;
+};
 
 export type QueryType = {
   query?: boolean;
@@ -147,7 +156,7 @@ export interface RequestPaginationPayload extends QueryType {
   pagination: Pagination;
 }
 
-/**@MutationSection */
+/** @MutationSection */
 export type BodyType = any;
 
 export interface MutationOptions<T> {
@@ -155,7 +164,7 @@ export interface MutationOptions<T> {
   method?: Method;
   body?: BodyType;
   effect?: "takeLatest" | "takeLeading" | "takeEvery";
-  invalidateTags?: Tags;
+  invalidateTags?: Array<Tag>;
 }
 export interface MutationRequestOptions<T>
   extends MutationOptions<T>,
