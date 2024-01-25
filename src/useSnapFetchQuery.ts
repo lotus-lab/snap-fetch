@@ -28,12 +28,25 @@ export const useSnapFetchQuery = <T>(
 ): SnapFetchResult<T> => {
   const dispatch = useDispatch();
 
-  const filterString = JSON.stringify(requestOptions.filter ?? {});
+  const filterString = useMemo(
+    () => JSON.stringify(requestOptions.filter ?? {}),
+    [requestOptions.filter]
+  );
 
-  const { hashKey } = useGenHashKey(`${endpoint}${filterString}`);
+  const hashInputString = useMemo(
+    () => `${endpoint}${filterString}`,
+    [endpoint, filterString]
+  );
+
+  const { hashKey } = useGenHashKey(hashInputString);
 
   const snapFetchData = useSelector((state: any) =>
     selectQueriesData(state, hashKey)
+  );
+
+  const hasNoCacheData = useMemo(
+    () => isEmpty(snapFetchData.data),
+    [snapFetchData?.data]
   );
 
   const baseConfig = useSelector(selectSnapFetchApiConfig);
@@ -47,8 +60,11 @@ export const useSnapFetchQuery = <T>(
 
   /** @PaginationSection */
   const paginationOptions = usePagination({
+    pageNo: snapFetchData?.pagination?.pageNo,
+    size: snapFetchData?.pagination?.size,
     data: snapFetchData?.data?.data,
     total: snapFetchData?.data?.total as number,
+    hashKey,
   });
 
   const {
@@ -62,12 +78,28 @@ export const useSnapFetchQuery = <T>(
     pollingInterval,
   } = requestOptions;
 
-  // const filterString = JSON.stringify(filter);
-  const paginationStringSize = JSON.stringify(paginationOptions?.size);
-  const paginationStringPageNo = JSON.stringify(paginationOptions.pageNo);
-  const allFilters = `${filterString}${paginationStringPageNo}${paginationStringSize}`;
-  const tagsString = JSON.stringify(tags);
-  const fetchFunctionString = JSON.stringify(customFetchFunction);
+  const paginationOptionString = useMemo(
+    () => JSON.stringify(paginationOptions),
+    [paginationOptions]
+  );
+  const paginationStringSize = useMemo(
+    () => JSON.stringify(paginationOptions?.size),
+    [paginationOptions?.size]
+  );
+  const paginationStringPageNo = useMemo(
+    () => JSON.stringify(paginationOptions.pageNo),
+    [paginationOptions?.pageNo]
+  );
+
+  const allFilters = useMemo(() => {
+    return `${filterString}${paginationStringPageNo}${paginationStringSize}`;
+  }, [filterString, paginationStringSize, paginationStringPageNo]);
+
+  const tagsString = useMemo(() => JSON.stringify(tags), [tags]);
+  const fetchFunctionString = useMemo(
+    () => JSON.stringify(customFetchFunction),
+    [customFetchFunction]
+  );
 
   /**@Refs */
   const filterRef = useRef(filter);
@@ -111,6 +143,13 @@ export const useSnapFetchQuery = <T>(
           mutation: false,
           queryParams,
           hashKey,
+          pagination: {
+            pageNo: paginationOptions.pageNo,
+            size: paginationOptions.size,
+            currentShowingItems: paginationOptions.currentShowingItems,
+            totalItems: paginationOptions.totalItems,
+            lastPage: paginationOptions.lastPage,
+          },
         };
 
         dataCache[hashKey] = {
@@ -136,9 +175,7 @@ export const useSnapFetchQuery = <T>(
       endpoint,
       fetchFunctionString,
       tagsString,
-      paginationStringPageNo,
-      paginationStringSize,
-      dispatch,
+      paginationOptionString,
       effect,
       searchTerm,
       filterString,
@@ -172,16 +209,12 @@ export const useSnapFetchQuery = <T>(
     if ((!skip && disableCaching) || queryParamsChanged) {
       fetchData();
     }
-  }, [fetchData, skip, disableCaching, queryParamsChanged]);
-
-  useEffect(() => {
     if (!disableCaching && !skip) {
-      if (isEmpty(snapFetchData.data)) {
+      if (hasNoCacheData) {
         fetchData();
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [disableCaching, isEmpty(snapFetchData.data), fetchData, skip]);
+  }, [fetchData, skip, disableCaching, queryParamsChanged, hasNoCacheData]);
 
   /**@Polling */
 
@@ -192,7 +225,7 @@ export const useSnapFetchQuery = <T>(
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
-  }, [timerRef.current]);
+  }, []);
 
   const startTimer = useCallback(() => {
     stopTimer();
@@ -202,7 +235,11 @@ export const useSnapFetchQuery = <T>(
         fetchData(true);
       }, pollingInterval * 1000);
     }
-  }, [pollingInterval, fetchData, stopTimer]);
+
+    return () => {
+      delete dataCache[hashKey];
+    };
+  }, [pollingInterval, fetchData, stopTimer, hashKey]);
 
   useEffect(() => {
     startTimer();

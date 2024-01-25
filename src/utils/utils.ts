@@ -16,20 +16,24 @@ export const fetcher = ({
   method,
   ...rest
 }: FetcherOptions) => {
-  const url = formatEndpoint(baseUrl, endpoint as string);
-  if (customFetchFunction) {
-    return customFetchFunction(
-      `${url}${queryParams?.size ? `?${queryParams}` : ""}`
-    );
-  }
+  try {
+    const url = formatEndpoint(baseUrl, endpoint as string);
+    if (customFetchFunction) {
+      return customFetchFunction(
+        `${url}${queryParams?.size ? `?${queryParams}` : ""}`
+      );
+    }
 
-  if (["GET", "HEAD"].includes(method as string)) {
-    delete rest?.body;
+    if (["GET", "HEAD"].includes(method as string)) {
+      delete rest?.body;
+    }
+    return fetch(`${url}${queryParams?.size ? `?${queryParams}` : ""}`, {
+      method: method ?? "GET",
+      ...rest,
+    });
+  } catch (error) {
+    throw new Error(error);
   }
-  return fetch(`${url}${queryParams?.size ? `?${queryParams}` : ""}`, {
-    method: method ?? "GET",
-    ...rest,
-  });
 };
 
 export function isEmpty(value: any): boolean {

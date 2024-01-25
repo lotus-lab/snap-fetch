@@ -47,10 +47,6 @@ function* fetchDataSaga(action: PayloadAction<RequestPayload>) {
       })
     );
 
-    if (!response.ok) {
-      throw new Error(response);
-    }
-
     if (fetchFunctionIsOutsider) {
       data = yield response;
     } else {

@@ -5,7 +5,10 @@ export const endpointInitial: EndpointResult = {
   isError: false,
   error: undefined,
   data: undefined,
-  pagination: {},
+  pagination: {
+    pageNo: 1,
+    size: 10,
+  },
   success: false,
   mutation: false,
   query: false,

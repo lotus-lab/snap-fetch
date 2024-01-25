@@ -30,7 +30,7 @@ const requestActions: CaseReducer<QueryState, PayloadAction<RequestPayload>> = (
   state,
   action
 ) => {
-  const { endpoint, tags, mutation, query, queryParams, hashKey } =
+  const { endpoint, tags, mutation, query, queryParams, hashKey, pagination } =
     action.payload;
 
   const requestData = {
@@ -44,6 +44,7 @@ const requestActions: CaseReducer<QueryState, PayloadAction<RequestPayload>> = (
     endpoint,
     queryParams,
     hashKey,
+    pagination,
   };
 
   if (query && hashKey) {
@@ -204,6 +205,24 @@ const SnapFetchSlice = createSlice({
           ...requestData,
         };
       }
+    },
+    changePageNo: (
+      state,
+      action: PayloadAction<{ hashKey: string | undefined; value: number }>
+    ) => {
+      const { hashKey, value } = action.payload;
+      const currentPagination =
+        state.endpoints.queries[hashKey as string].pagination;
+      if (currentPagination) currentPagination.pageNo = value;
+    },
+    changeSize: (
+      state,
+      action: PayloadAction<{ hashKey: string | undefined; value: number }>
+    ) => {
+      const { hashKey, value } = action.payload;
+      const currentPagination =
+        state.endpoints.queries[hashKey as string].pagination;
+      if (currentPagination) currentPagination.size = value;
     },
   },
 });

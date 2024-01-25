@@ -31,6 +31,7 @@ export interface RequestPayload extends RequestInit {
   createdAt?: Date;
   pollingInterval?: number;
   hashKey?: EndpointKey;
+  pagination?: Pagination;
 }
 export type UseQueryOptions = {
   requestInit?: RequestInit;
@@ -70,7 +71,7 @@ export type EndpointResult = {
   isError: boolean;
   error: Error | undefined;
   data?: any;
-  pagination?: Pagination;
+  pagination?: Pagination | undefined;
   success: boolean;
   tags?: Tags;
   mutation?: boolean;
@@ -87,8 +88,11 @@ export type EndpointState = {
 };
 
 export type Pagination = {
-  pageNo?: number;
-  size?: number;
+  pageNo?: number | undefined;
+  size?: number | undefined;
+  lastPage?: number | undefined;
+  currentShowingItems?: number | undefined;
+  totalItems?: number | undefined;
 };
 
 export type InvalidateCachePayload = {
