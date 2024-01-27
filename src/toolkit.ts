@@ -107,6 +107,7 @@ const SnapFetchSlice = createSlice({
         error: undefined,
         isError: false,
         success: true,
+        createdAt: new Date(),
       };
 
       if (query && hashKey) {

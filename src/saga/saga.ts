@@ -60,7 +60,7 @@ function* fetchDataSaga(action: PayloadAction<RequestPayload>) {
       const allQueriesWithTag: Array<EndpointResult> = yield select((state) =>
         selectQueriesDataByTags(state, invalidateTags)
       );
-      console.log(allQueriesWithTag);
+
       const arrayOfPuts: Array<unknown> = yield allQueriesWithTag.map(
         (queryCatchData) =>
           put(

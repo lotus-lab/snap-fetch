@@ -1,6 +1,6 @@
 {
   "name": "snap-fetch",
-  "version": "1.0.30",
+  "version": "1.0.38",
   "main": "./lib/src/index.js",
   "module": "./lib/src/index.js",
   "types": "./lib/src/index.d.ts",

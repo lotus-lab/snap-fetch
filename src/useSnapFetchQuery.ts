@@ -19,6 +19,8 @@ import {
 import { usePagination } from "./utils/usePagination";
 import { isEmpty, isEqual } from "./utils/utils";
 import { useGenHashKey } from "./useGenHashKey";
+import { usePolling } from "./utils/usePolling";
+import { useCacheInvalidate } from "./utils/useCacheInvalidate";
 
 const dataCache: DataCache = {};
 
@@ -30,7 +32,7 @@ export const useSnapFetchQuery = <T>(
 
   const filterString = useMemo(
     () => JSON.stringify(requestOptions.filter ?? {}),
-    [requestOptions.filter]
+    [JSON.stringify(requestOptions.filter)]
   );
 
   const hashInputString = useMemo(
@@ -46,15 +48,16 @@ export const useSnapFetchQuery = <T>(
 
   const hasNoCacheData = useMemo(
     () => isEmpty(snapFetchData.data),
-    [snapFetchData?.data]
+    [JSON.stringify(snapFetchData?.data)]
   );
 
   const baseConfig = useSelector(selectSnapFetchApiConfig);
 
   const {
-    baseUrl,
+    baseUrl: baseConfigBaseUrl,
     disableCaching: baseDisableCaching,
     customFetchFunction,
+    cacheExpirationTime: baseExpirationTime = 120,
     ...rest
   } = baseConfig ?? {};
 
@@ -71,23 +74,21 @@ export const useSnapFetchQuery = <T>(
     tags,
     filter = {},
     skip = false,
-    searchTerm,
     effect = "takeEvery",
     disableCaching = baseDisableCaching ?? false,
     single,
     pollingInterval,
+    baseUrl = baseConfigBaseUrl,
+    cacheExpirationTime = baseExpirationTime,
   } = requestOptions;
 
-  const paginationOptionString = useMemo(
-    () => JSON.stringify(paginationOptions),
-    [paginationOptions]
-  );
   const paginationStringSize = useMemo(
     () => JSON.stringify(paginationOptions?.size),
     [paginationOptions?.size]
   );
+
   const paginationStringPageNo = useMemo(
-    () => JSON.stringify(paginationOptions.pageNo),
+    () => JSON.stringify(paginationOptions?.pageNo),
     [paginationOptions?.pageNo]
   );
 
@@ -95,7 +96,6 @@ export const useSnapFetchQuery = <T>(
     return `${filterString}${paginationStringPageNo}${paginationStringSize}`;
   }, [filterString, paginationStringSize, paginationStringPageNo]);
 
-  const tagsString = useMemo(() => JSON.stringify(tags), [tags]);
   const fetchFunctionString = useMemo(
     () => JSON.stringify(customFetchFunction),
     [customFetchFunction]
@@ -116,9 +116,6 @@ export const useSnapFetchQuery = <T>(
         isPolling
       ) {
         const queryParams = new URLSearchParams("");
-        if (searchTerm) {
-          queryParams.set(searchTerm, encodeURIComponent(searchTerm));
-        }
 
         if (filter) {
           Object.keys(filter).forEach((key) => {
@@ -150,6 +147,8 @@ export const useSnapFetchQuery = <T>(
             totalItems: paginationOptions.totalItems,
             lastPage: paginationOptions.lastPage,
           },
+          baseUrl,
+          cacheExpirationTime,
         };
 
         dataCache[hashKey] = {
@@ -168,42 +167,26 @@ export const useSnapFetchQuery = <T>(
             dispatch(actions.takeEveryRequest(payload));
         }
       }
-
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     },
-    [
-      endpoint,
-      fetchFunctionString,
-      tagsString,
-      paginationOptionString,
-      effect,
-      searchTerm,
-      filterString,
-      baseUrl,
-      hashKey,
-    ]
+    [endpoint, fetchFunctionString, tags, allFilters, effect, baseUrl, hashKey]
   );
 
   /** @AdditionalChecks */
 
   const queryParamsChanged = useMemo(() => {
     if (
-      (!skip && !isEqual(filter, filterRef.current)) ||
-      (!skip && !isEqual(pageNoRef.current, paginationOptions.pageNo)) ||
-      (!skip && !isEqual(sizeRef.current, paginationOptions.size))
+      !skip &&
+      (!isEqual(filter, filterRef.current) ||
+        !isEqual(pageNoRef.current, paginationOptions.pageNo) ||
+        !isEqual(sizeRef.current, paginationOptions.size))
     ) {
+      pageNoRef.current = paginationOptions.pageNo;
+      sizeRef.current = paginationOptions.size;
+      filterRef.current = filter;
       return true;
     }
     return false;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    skip,
-    filterString,
-    paginationStringPageNo,
-    paginationStringSize,
-    pageNoRef,
-    filterRef,
-  ]);
+  }, [skip, filterString, paginationStringPageNo, paginationStringSize]);
 
   useEffect(() => {
     if ((!skip && disableCaching) || queryParamsChanged) {
@@ -223,33 +206,16 @@ export const useSnapFetchQuery = <T>(
   }, [hashKey]);
 
   /** @Polling */
-
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-
-  const stopTimer = useCallback(() => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-  }, []);
-
-  const startTimer = useCallback(() => {
-    stopTimer();
-
-    if (pollingInterval) {
-      timerRef.current = setInterval(() => {
-        fetchData(true);
-      }, pollingInterval * 1000);
-    }
-  }, [pollingInterval, fetchData, stopTimer, hashKey]);
-
-  useEffect(() => {
-    startTimer();
-
-    return () => {
-      stopTimer();
-    };
-  }, [fetchData, startTimer, stopTimer]);
+  usePolling({
+    fetchData,
+    pollingInterval,
+  });
+  /**@CacheTimeLimitChecker */
+  useCacheInvalidate({
+    cacheExpirationTime,
+    fetchData,
+    snapFetchData,
+  });
 
   return {
     refetch: fetchData,

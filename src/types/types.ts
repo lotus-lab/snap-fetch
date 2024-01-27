@@ -31,6 +31,8 @@ export interface RequestPayload extends RequestInit {
   pollingInterval?: number;
   hashKey?: EndpointKey;
   pagination?: Pagination;
+  baseUrl?: string;
+  cacheExpirationTime?: number;
 }
 export type UseQueryOptions = {
   requestInit?: RequestInit;
@@ -39,18 +41,15 @@ export type UseQueryOptions = {
 export interface CreateApiOptions {
   fetchFunction?: (endpoint: string) => Promise<Response>;
   tags?: Tag;
-}
-
-export type FetchBaseQueryOptions = {
   baseUrl?: string;
-  initHeaders?: (headers: Headers) => Headers | void;
-};
+  cacheExpirationTime?: number;
+}
 
 /* --- STATE --- */
 
 export interface APiConfig extends RequestInit {
   baseUrl: string;
-  expirationTime?: number;
+  cacheExpirationTime?: number;
   disableCaching?: boolean;
   customFetchFunction?: ((endpoint: string) => Promise<Response>) | undefined;
   method?: Method;
@@ -100,7 +99,6 @@ export type InvalidateCachePayload = {
 };
 
 export interface Options {
-  searchTerm?: string;
   filter?: { [key: string]: number | boolean | string | undefined | null };
   pollingInterval?: number;
   skip?: boolean;
