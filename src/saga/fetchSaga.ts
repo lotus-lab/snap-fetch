@@ -41,6 +41,7 @@ export function* fetchSaga(action: PayloadAction<RequestPayload>) {
   if (resolve) {
     yield resolve(data);
   }
+
   if (mutation && response && invalidateTags) {
     const allQueriesWithTag: Array<EndpointResult> = yield select((state) =>
       selectQueriesDataByTags(state, invalidateTags)
@@ -60,7 +61,8 @@ export function* fetchSaga(action: PayloadAction<RequestPayload>) {
     }
   }
   if (transformResponse) {
-    data = yield call(() => transformResponse(data));
+    data = yield transformResponse(data);
   }
+
   yield put(actions.success({ data, endpoint, mutation, query, hashKey }));
 }

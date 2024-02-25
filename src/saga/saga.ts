@@ -42,8 +42,8 @@ function* fetchDataSaga(action: PayloadAction<RequestPayload>) {
 
 function* invalidateCatchSaga(action: PayloadAction<InvalidateCachePayload>) {
   const { mutation, fetchFunctionIsOutsider } = action.payload.requestPayload;
-  const { queryCatchData } = action.payload;
 
+  const { queryCatchData } = action.payload;
   let data: unknown;
   try {
     yield put(
@@ -77,6 +77,9 @@ function* invalidateCatchSaga(action: PayloadAction<InvalidateCachePayload>) {
         data = yield response;
       } else {
         data = yield response.json();
+      }
+      if (queryCatchData.transformResponse) {
+        data = yield queryCatchData.transformResponse(data);
       }
 
       yield put(

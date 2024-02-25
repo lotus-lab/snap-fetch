@@ -56,7 +56,9 @@ export const selectMutationsData: (
 ) => EndpointResult = createSelector(
   [selectQueryData, (_state: any, endpoint: EndpointKey) => endpoint],
 
-  (state, endpoint) => state?.mutations?.[endpoint] || endpointInitial
+  (state, endpoint) => {
+    return state?.mutations?.[endpoint] || endpointInitial;
+  }
 );
 
 export const selectSnapFetchApiConfig: (state: any) => APiConfig =

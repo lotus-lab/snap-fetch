@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+/* eslint-disable prefer-const */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -27,9 +29,9 @@ export interface Result<T> {
   clear: () => void;
 }
 
-export const useSnapFetchMutation = <T>(
+export const useSnapFetchMutation = <T, ActualApiRes = unknown>(
   endpoint: string,
-  requestOptions: MutationRequestOptions<T> = {}
+  requestOptions: MutationRequestOptions<T, ActualApiRes> = {}
 ): Result<T | undefined> => {
   const {
     baseUrl: baseConfigUrl,
@@ -43,6 +45,7 @@ export const useSnapFetchMutation = <T>(
     method,
     body,
     baseUrl = baseConfigUrl,
+    transformResponse,
   } = requestOptions;
 
   const dispatch = useDispatch();
@@ -91,6 +94,8 @@ export const useSnapFetchMutation = <T>(
           body: stringBody,
           method: (requestInit?.method ?? method ?? "POST") as Method,
           baseUrl,
+          //@ts-ignore
+          transformResponse,
         };
 
         switch (effect) {

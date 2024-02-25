@@ -7,9 +7,9 @@ export type EndpointKey = keyof KeysOfEndpointSate;
 // export type Tags = Array<string | number> | number | string | undefined;
 export type Tag = string | number | undefined;
 
-export interface RequestPayload<T = undefined>
+export interface RequestPayload<T = undefined, ActualApiRes = unknown>
   extends RequestInit,
-    CreateApiOptions<T> {
+    CreateApiOptions<T, ActualApiRes> {
   endpoint: EndpointKey;
   invalidateTags?: Array<Tag>;
   fetchFunctionIsOutsider: boolean;
@@ -28,12 +28,12 @@ export type UseQueryOptions = {
   requestInit?: RequestInit;
 };
 
-export interface CreateApiOptions<T> {
+export interface CreateApiOptions<T, ActualApiRes> {
   fetchFunction?: (endpoint: string) => Promise<Response>;
   tags?: Tag;
   baseUrl?: string;
   cacheExpirationTime?: number;
-  transformResponse?: (response: any) => T;
+  transformResponse?: (response: ActualApiRes) => T;
 }
 
 /* --- STATE --- */
@@ -66,6 +66,7 @@ export type EndpointResult = {
   queryParams?: any;
   createdAt?: Date;
   hashKey?: EndpointKey;
+  transformResponse?: (data: any) => any;
 };
 
 export type EndpointState = {
@@ -102,7 +103,9 @@ export type Method =
   | "OPTIONS"
   | "CONNECT"
   | "PATCH";
-export interface RequestOptions<T> extends CreateApiOptions<T>, Options {
+export interface RequestOptions<T, ActualApiRes = undefined>
+  extends CreateApiOptions<T, ActualApiRes>,
+    Options {
   effect?: "takeLatest" | "takeLeading" | "takeEvery";
   method?: Method;
   disableCaching?: boolean;
@@ -145,16 +148,15 @@ export interface RequestPaginationPayload extends QueryType {
 /** @MutationSection */
 export type BodyType = any;
 
-export interface MutationOptions<T> {
-  transform?: (data: T) => T;
+export interface MutationOptions {
   method?: Method;
   body?: BodyType;
   effect?: "takeLatest" | "takeLeading" | "takeEvery";
   invalidateTags?: Array<Tag>;
 }
-export interface MutationRequestOptions<T>
-  extends MutationOptions<T>,
-    Omit<CreateApiOptions<T>, "tags"> {}
+export interface MutationRequestOptions<T, ActualApiRes = undefined>
+  extends MutationOptions,
+    Omit<CreateApiOptions<T, ActualApiRes>, "tags"> {}
 
 export type DataCache = {
   [key: string]: {

@@ -24,9 +24,9 @@ import { useCacheInvalidate } from "./utils/useCacheInvalidate";
 
 const dataCache: DataCache = {};
 
-export const useSnapFetchQuery = <T>(
+export const useSnapFetchQuery = <T, ActualApiRes = unknown>(
   endpoint: EndpointKey,
-  requestOptions: RequestOptions<T> = {}
+  requestOptions: RequestOptions<T, ActualApiRes> = {}
 ): SnapFetchResult<T> => {
   const dispatch = useDispatch();
 
