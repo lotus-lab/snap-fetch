@@ -26,7 +26,7 @@ const dataCache: DataCache = {};
 
 export const useSnapFetchQuery = <T>(
   endpoint: EndpointKey,
-  requestOptions: RequestOptions = {}
+  requestOptions: RequestOptions<T> = {}
 ): SnapFetchResult<T> => {
   const dispatch = useDispatch();
 
@@ -80,6 +80,7 @@ export const useSnapFetchQuery = <T>(
     pollingInterval,
     baseUrl = baseConfigBaseUrl,
     cacheExpirationTime = baseExpirationTime,
+    transformResponse,
   } = requestOptions;
 
   const paginationStringSize = useMemo(
@@ -99,6 +100,10 @@ export const useSnapFetchQuery = <T>(
   const fetchFunctionString = useMemo(
     () => JSON.stringify(customFetchFunction),
     [customFetchFunction]
+  );
+  const transformResponseString = useMemo(
+    () => JSON.stringify(transformResponse),
+    [transformResponse]
   );
 
   /** @Refs */
@@ -149,6 +154,8 @@ export const useSnapFetchQuery = <T>(
           },
           baseUrl,
           cacheExpirationTime,
+          //@ts-ignore
+          transformResponse,
         };
 
         dataCache[hashKey] = {
@@ -168,7 +175,17 @@ export const useSnapFetchQuery = <T>(
         }
       }
     },
-    [endpoint, fetchFunctionString, tags, allFilters, effect, baseUrl, hashKey]
+    [
+      endpoint,
+      fetchFunctionString,
+      transformResponseString,
+      tags,
+      allFilters,
+      effect,
+      baseUrl,
+      hashKey,
+      single,
+    ]
   );
 
   /** @AdditionalChecks */

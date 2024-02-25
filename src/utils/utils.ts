@@ -8,7 +8,7 @@ interface FetcherOptions extends RequestPayload, RequestInit {
   method?: Method;
 }
 
-export const fetcher = ({
+export const fetcher = async ({
   customFetchFunction,
   baseUrl,
   endpoint,

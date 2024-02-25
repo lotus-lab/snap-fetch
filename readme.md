@@ -204,7 +204,7 @@ import { useSnapFetchQuery } from 'snap-fetch';
 ```javascript
 const MyComponent = () => {
   const { data, isLoading, error } = useSnapFetchQuery<Users>('users', {
-    tags:['getUsers']
+    tags: 'getUsers'
   });
 
   if (isLoading) {
@@ -229,7 +229,7 @@ const MyComponent = () => {
 
 This hook allows you to manipulate the data and make mutation calls it will automatically revalidate the cache if queries with the same endpoint are available.
 
-**It accept to parameters:**
+**It accept two parameters:**
 1. The endpoint
 2. Options:
 

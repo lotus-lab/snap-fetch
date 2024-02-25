@@ -1,9 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// import { Endpoints, MaybePromise } from "./common";
-
-import { ActionCreatorWithPayload, PrepareAction } from "@reduxjs/toolkit";
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export type KeysOfEndpointSate = { [key: string]: EndpointResult };
 
@@ -11,14 +6,11 @@ export type EndpointKey = keyof KeysOfEndpointSate;
 
 // export type Tags = Array<string | number> | number | string | undefined;
 export type Tag = string | number | undefined;
-export interface FetchFunctionOptions extends RequestPayload {
-  method?: Method;
-}
 
-export interface RequestPayload extends RequestInit {
-  // fetchFunction: (options: FetchFunctionOptions) => Promise<Response>;
+export interface RequestPayload<T = undefined>
+  extends RequestInit,
+    CreateApiOptions<T> {
   endpoint: EndpointKey;
-  tags?: Tag;
   invalidateTags?: Array<Tag>;
   fetchFunctionIsOutsider: boolean;
   resolve?: (data: any) => void;
@@ -31,18 +23,17 @@ export interface RequestPayload extends RequestInit {
   pollingInterval?: number;
   hashKey?: EndpointKey;
   pagination?: Pagination;
-  baseUrl?: string;
-  cacheExpirationTime?: number;
 }
 export type UseQueryOptions = {
   requestInit?: RequestInit;
 };
 
-export interface CreateApiOptions {
+export interface CreateApiOptions<T> {
   fetchFunction?: (endpoint: string) => Promise<Response>;
   tags?: Tag;
   baseUrl?: string;
   cacheExpirationTime?: number;
+  transformResponse?: (response: any) => T;
 }
 
 /* --- STATE --- */
@@ -54,10 +45,7 @@ export interface APiConfig extends RequestInit {
   customFetchFunction?: ((endpoint: string) => Promise<Response>) | undefined;
   method?: Method;
 }
-export type Action = ActionCreatorWithPayload<
-  PrepareAction<RequestPayload>,
-  string
->;
+
 export declare type QueryState = {
   endpoints: EndpointState;
   apiConfig: APiConfig;
@@ -93,8 +81,8 @@ export type Pagination = {
   totalItems?: number | undefined;
 };
 
-export type InvalidateCachePayload = {
-  requestPayload: RequestPayload;
+export type InvalidateCachePayload<T = undefined> = {
+  requestPayload: RequestPayload<T>;
   queryCatchData: EndpointResult;
 };
 
@@ -114,7 +102,7 @@ export type Method =
   | "OPTIONS"
   | "CONNECT"
   | "PATCH";
-export interface RequestOptions extends CreateApiOptions, Options {
+export interface RequestOptions<T> extends CreateApiOptions<T>, Options {
   effect?: "takeLatest" | "takeLeading" | "takeEvery";
   method?: Method;
   disableCaching?: boolean;
@@ -166,7 +154,7 @@ export interface MutationOptions<T> {
 }
 export interface MutationRequestOptions<T>
   extends MutationOptions<T>,
-    Omit<CreateApiOptions, "tags"> {}
+    Omit<CreateApiOptions<T>, "tags"> {}
 
 export type DataCache = {
   [key: string]: {
