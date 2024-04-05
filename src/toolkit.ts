@@ -30,8 +30,16 @@ const requestActions: CaseReducer<QueryState, PayloadAction<RequestPayload>> = (
   state,
   action
 ) => {
-  const { endpoint, tags, mutation, query, queryParams, hashKey, pagination } =
-    action.payload;
+  const {
+    endpoint,
+    tags,
+    mutation,
+    query,
+    queryParams,
+    hashKey,
+    pagination,
+    transformResponse,
+  } = action.payload;
 
   const requestData = {
     error: undefined,
@@ -45,6 +53,7 @@ const requestActions: CaseReducer<QueryState, PayloadAction<RequestPayload>> = (
     queryParams,
     hashKey,
     pagination,
+    transformResponse,
   };
 
   if (query && hashKey) {
@@ -107,6 +116,7 @@ const SnapFetchSlice = createSlice({
         error: undefined,
         isError: false,
         success: true,
+        createdAt: new Date(),
       };
 
       if (query && hashKey) {

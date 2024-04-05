@@ -9,71 +9,21 @@ import {
 } from "redux-saga/effects";
 import { PayloadAction } from "@reduxjs/toolkit";
 
-import {
-  selectQueriesDataByTags,
-  selectSnapFetchApiConfig,
-} from "../selectors/selectors";
+import { selectSnapFetchApiConfig } from "../selectors/selectors";
 import { actions } from "../toolkit";
 import {
   APiConfig,
-  EndpointResult,
   InvalidateCachePayload,
   RequestPayload,
 } from "../types/types";
 import { fetcher } from "../utils/utils";
+import { fetchSaga } from "./fetchSaga";
 
 function* fetchDataSaga(action: PayloadAction<RequestPayload>) {
-  const {
-    endpoint,
-
-    resolve,
-    reject,
-    mutation,
-    query,
-    fetchFunctionIsOutsider,
-    hashKey,
-    invalidateTags,
-  } = action.payload;
-
-  let data: unknown;
+  const { endpoint, reject, mutation, query, hashKey } = action.payload;
 
   try {
-    const baseApiConfig: APiConfig = yield select(selectSnapFetchApiConfig);
-
-    const response: Response & string = yield call(() =>
-      fetcher({
-        ...baseApiConfig,
-        ...action.payload,
-      })
-    );
-
-    if (fetchFunctionIsOutsider) {
-      data = yield response;
-    } else {
-      data = yield response?.json();
-    }
-
-    if (resolve) {
-      yield resolve(data);
-    }
-    if (mutation && response && invalidateTags) {
-      const allQueriesWithTag: Array<EndpointResult> = yield select((state) =>
-        selectQueriesDataByTags(state, invalidateTags)
-      );
-      console.log(allQueriesWithTag);
-      const arrayOfPuts: Array<unknown> = yield allQueriesWithTag.map(
-        (queryCatchData) =>
-          put(
-            actions.invalidateCache({
-              requestPayload: action.payload,
-              queryCatchData,
-            })
-          )
-      );
-
-      yield all(arrayOfPuts);
-    }
-    yield put(actions.success({ data, endpoint, mutation, query, hashKey }));
+    yield call(() => fetchSaga(action));
   } catch (err) {
     yield put(
       actions.failure({
@@ -92,8 +42,8 @@ function* fetchDataSaga(action: PayloadAction<RequestPayload>) {
 
 function* invalidateCatchSaga(action: PayloadAction<InvalidateCachePayload>) {
   const { mutation, fetchFunctionIsOutsider } = action.payload.requestPayload;
-  const { queryCatchData } = action.payload;
 
+  const { queryCatchData } = action.payload;
   let data: unknown;
   try {
     yield put(
@@ -127,6 +77,9 @@ function* invalidateCatchSaga(action: PayloadAction<InvalidateCachePayload>) {
         data = yield response;
       } else {
         data = yield response.json();
+      }
+      if (queryCatchData.transformResponse) {
+        data = yield queryCatchData.transformResponse(data);
       }
 
       yield put(

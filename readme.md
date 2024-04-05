@@ -1,19 +1,16 @@
-
 # SnapFetch Query Overview
 
-
 ## **WHAT WE'LL LEARN**
+
 - What Snap-Fetch is and what problems it solves
 - What APIs are included in Snap-Fetch
 - Basic usage
-
 
 ---
 
 ## Snap-Fetch
 
-**Snap-Fetch** is a light weight **data fetching tool** built for React that allows you to fetch data from an API, **cache it**, and store it in **Redux** using **Redux Toolkit** and **Redux Saga**. It provides **intuitive hooks** for performing *8queries** and **mutations**, as well as a hook for configuring **global api options**.
-
+**Snap-Fetch** is a light weight **data fetching tool** built for React that allows you to fetch data from an API, **cache it**, and store it in **Redux** using **Redux Toolkit** and **Redux Saga**. It provides **intuitive hooks** for performing \*8queries** and **mutations**, as well as a hook for configuring **global api options\*\*.
 
 ## Motivation
 
@@ -43,18 +40,16 @@ yarn add snap-fetch
 ### Add SnapFetch Reducers
 
 ```javascript
-
 import { name, reducer } from "snap-fetch";
 
 export const rootReducer = combineReducers({
   [name]: reducer,
 });
-
 ```
 
 ### Run SnapFetch Sagas
-```javascript 
 
+```javascript
 /**
  * Create the store with dynamic reducers
  */
@@ -80,12 +75,10 @@ export function configureAppStore() {
   sagaMiddleware.run(rootSnapFetchSaga);
   return { store };
 }
-
-
 ```
 
-
 ## What's included
+
 1. [useSetBaseConfiguration](#useSetBaseConfiguration)
 2. [useSnapFetchQuery](#useSnapFetchQuery)
 3. [useSnapFetchMutation](#useSnapFetchMutation)
@@ -115,23 +108,20 @@ The `options` object accepts the following properties:
 - Fetch API RequestInitiator...
 
 ```javascript
-
 // To root of you project like App.tsx main.tsx
 
-import { useSetBaseConfiguration } from "snap-fetch"
+import { useSetBaseConfiguration } from "snap-fetch";
 const baseUrl = "https://jsonplaceholder.typicode.com";
 
-  useSetBaseConfiguration({
-    baseUrl, // Required
-    disableCaching: boolean, // if true caching will be disabled, // this is global, can be overridden by individual disableCaching properties
-    // Below has no effect if you are using your own fetch function
-    headers: new Headers({
-      Authorization: `Bearer ${token}`,
-    }),
-  });
-
+useSetBaseConfiguration({
+  baseUrl, // Required
+  disableCaching: boolean, // if true caching will be disabled, // this is global, can be overridden by individual disableCaching properties
+  // Below has no effect if you are using your own fetch function
+  headers: new Headers({
+    Authorization: `Bearer ${token}`,
+  }),
+});
 ```
-
 
 ### useSnapFetchQuery (Query Hook)
 
@@ -141,22 +131,21 @@ It uses the endpoint + queryParams to cache the state, which allow it to avoid u
 
 it accepts two parameters
 
-1. The endpoint - is the endpoint which will be used to fetch data by combining with the baseUrl 
+1. The endpoint - is the endpoint which will be used to fetch data by combining with the baseUrl
 2. Request options - is as follows:
+
 ```javascript
-
 type RequestOptions = {
-  effect?: "takeLatest" | "takeLeading" | "takeEvery"; // saga effect, default is "takeEvery"
-  method?: Method;
-  disableCaching?: boolean; // will disable caching for the current endpoint request
-  fetchFunction?: (endpoint: string) => Promise<Response>; // custom fetch function if you don't like the built-in.
-  tags?: Tags; // Tags will be used to invalidate on mutation requests.
-  filter?: { [key: string]: number | boolean | string | undefined | null }; // your filters except for pagination. 
-  pollingInterval?: number; // polling interval for polling requests
-  skip?: boolean; // skip on mount request for the current endpoint
-  single?: boolean; // to tell the snap-fetcher query you don't want to use pagination.
-}
-
+  effect?: "takeLatest" | "takeLeading" | "takeEvery", // saga effect, default is "takeEvery"
+  method?: Method,
+  disableCaching?: boolean, // will disable caching for the current endpoint request
+  fetchFunction?: (endpoint: string) => Promise<Response>, // custom fetch function if you don't like the built-in.
+  tags?: Tags, // Tags will be used to invalidate on mutation requests.
+  filter?: { [key: string]: number | boolean | string | undefined | null }, // your filters except for pagination.
+  pollingInterval?: number, // polling interval for polling requests
+  skip?: boolean, // skip on mount request for the current endpoint
+  single?: boolean, // to tell the snap-fetcher query you don't want to use pagination.
+};
 ```
 
 ### Query Result
@@ -189,23 +178,27 @@ Queries have built in pagination support the result of useSnapFetchQuery will re
 
 ```
 
-- Use the the changePageNo and changeSize to update the pagination. 
+- Use the the changePageNo and changeSize to update the pagination.
 
 ## Usage
 
 Import the necessary hooks from the `snap-fetch` package:
 
 ```javascript
-import { useSnapFetchQuery } from 'snap-fetch';
+import { useSnapFetchQuery } from "snap-fetch";
 ```
 
 ### 2. Querying Data
 
 ```javascript
 const MyComponent = () => {
-  const { data, isLoading, error } = useSnapFetchQuery<Users>('users', {
-    tags:['getUsers']
-  });
+  const { data, isLoading, error } =
+    useSnapFetchQuery <
+    Users >
+    ("users",
+    {
+      tags: "getUsers",
+    });
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -229,18 +222,19 @@ const MyComponent = () => {
 
 This hook allows you to manipulate the data and make mutation calls it will automatically revalidate the cache if queries with the same endpoint are available.
 
-**It accept to parameters:**
+**It accept two parameters:**
+
 1. The endpoint
 2. Options:
 
 ```javascript
 type RequestOptions = {
-  effect?: "takeLatest" | "takeLeading" | "takeEvery"; // saga effect, default is "takeLeading"
-  method?: Method;
-  fetchFunction?: (endpoint: string) => Promise<Response>; // custom fetch function if you don't like the built-in.
-  invalidateTags?: Tags; // Tags will be used to invalidate on mutation requests.
-  body?: any; // Request body, will automatically remove the body if you accidentally use methods like "GET" or "HEAD"
-}
+  effect?: "takeLatest" | "takeLeading" | "takeEvery", // saga effect, default is "takeLeading"
+  method?: Method,
+  fetchFunction?: (endpoint: string) => Promise<Response>, // custom fetch function if you don't like the built-in.
+  invalidateTags?: Tags, // Tags will be used to invalidate on mutation requests.
+  body?: any, // Request body, will automatically remove the body if you accidentally use methods like "GET" or "HEAD"
+};
 ```
 
 ### Mutation Result
@@ -257,16 +251,16 @@ To perform a mutation and send data to the API, use the `useSnapFetchMutation` h
 
 ```javascript
 const MyComponent = () => {
-  const { mutate, isLoading, error } = useSnapFetchMutation('createUser', {
-    invalidateTags: ['getUsers']
+  const { mutate, isLoading, error } = useSnapFetchMutation("createUser", {
+    invalidateTags: ["getUsers"],
   });
 
   const handleSubmit = async (data) => {
     try {
       await mutate(data);
-      console.log('User created successfully!');
+      console.log("User created successfully!");
     } catch (e) {
-      console.error('Error creating user:', e);
+      console.error("Error creating user:", e);
     }
   };
 
@@ -288,6 +282,7 @@ const MyComponent = () => {
   );
 };
 ```
+
 ---
 
-For further information please see the full documentation.
+For further information please see the full [documentation](https://snap-fetch.filezillow.com/docs/intro).

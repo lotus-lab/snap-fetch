@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+/* eslint-disable prefer-const */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -27,19 +29,23 @@ export interface Result<T> {
   clear: () => void;
 }
 
-export const useSnapFetchMutation = <T>(
+export const useSnapFetchMutation = <T, ActualApiRes = T>(
   endpoint: string,
-  requestOptions: MutationRequestOptions<T> = {}
+  requestOptions: MutationRequestOptions<T, ActualApiRes> = {}
 ): Result<T | undefined> => {
-  const { baseUrl, customFetchFunction, ...rest } = useSelector(
-    selectSnapFetchApiConfig
-  );
-
   const {
+    baseUrl: baseConfigUrl,
+    customFetchFunction,
+    ...rest
+  } = useSelector(selectSnapFetchApiConfig);
+
+  let {
     invalidateTags,
     effect = "takeLeading",
     method,
     body,
+    baseUrl = baseConfigUrl,
+    transformResponse,
   } = requestOptions;
 
   const dispatch = useDispatch();
@@ -63,48 +69,48 @@ export const useSnapFetchMutation = <T>(
 
   const mutate = useCallback(
     async (handlerBody?: any, requestInit?: Partial<RequestInit>) => {
-      try {
-        const responseData = await new Promise<T>((resolve, reject) => {
-          let bodyType: BodyType | undefined = handlerBody;
+      const responseData = await new Promise<T>((resolve, reject) => {
+        let bodyType: BodyType | undefined = handlerBody;
 
-          // Check if handlerBody is an event object
+        if (handlerBody?.constructor?.name?.includes("Event")) {
+          // Provide a default value for the body or ignore it
+          // For example, you can assign an empty object as the default body
+          bodyType = "";
+        }
 
-          if (handlerBody instanceof Event) {
-            // Provide a default value for the body or ignore it
-            // For example, you can assign an empty object as the default body
-            bodyType = {};
-          }
-          const stringBody = JSON.stringify(bodyType || body);
-          const payload: RequestPayload = {
-            endpoint,
-            invalidateTags,
-            fetchFunctionIsOutsider: !!customFetchFunction,
-            resolve,
-            reject,
-            mutation: true,
-            query: false,
-            body: stringBody,
-            method: (requestInit?.method ?? method ?? "POST") as Method,
-          };
+        if (body?.constructor?.name?.includes("Event")) {
+          body = "";
+        }
 
-          switch (effect) {
-            case "takeLatest":
-              dispatch(actions.takeLatestRequest(payload));
-              break;
-            case "takeLeading":
-              dispatch(actions.takeLeadingRequest(payload));
-              break;
-            default:
-              dispatch(actions.takeEveryRequest(payload));
-          }
-        });
+        const stringBody = JSON.stringify(bodyType || body);
+        const payload: RequestPayload = {
+          endpoint,
+          invalidateTags,
+          fetchFunctionIsOutsider: !!customFetchFunction,
+          resolve,
+          reject,
+          mutation: true,
+          query: false,
+          body: stringBody,
+          method: (requestInit?.method ?? method ?? "POST") as Method,
+          baseUrl,
+          //@ts-ignore
+          transformResponse,
+        };
 
-        return responseData;
-      } catch (error) {
-        throw new Error(
-          "Event are not a valid body, calling mutate with event body!"
-        );
-      }
+        switch (effect) {
+          case "takeLatest":
+            dispatch(actions.takeLatestRequest(payload));
+            break;
+          case "takeLeading":
+            dispatch(actions.takeLeadingRequest(payload));
+            break;
+          default:
+            dispatch(actions.takeEveryRequest(payload));
+        }
+      });
+
+      return responseData;
     },
     [
       endpoint,
