@@ -29,7 +29,7 @@ export interface Result<T> {
   clear: () => void;
 }
 
-export const useSnapFetchMutation = <T, ActualApiRes = unknown>(
+export const useSnapFetchMutation = <T, ActualApiRes = T>(
   endpoint: string,
   requestOptions: MutationRequestOptions<T, ActualApiRes> = {}
 ): Result<T | undefined> => {

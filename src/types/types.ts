@@ -7,7 +7,7 @@ export type EndpointKey = keyof KeysOfEndpointSate;
 // export type Tags = Array<string | number> | number | string | undefined;
 export type Tag = string | number | undefined;
 
-export interface RequestPayload<T = undefined, ActualApiRes = unknown>
+export interface RequestPayload<T = undefined, ActualApiRes = T>
   extends RequestInit,
     CreateApiOptions<T, ActualApiRes> {
   endpoint: EndpointKey;
@@ -103,7 +103,7 @@ export type Method =
   | "OPTIONS"
   | "CONNECT"
   | "PATCH";
-export interface RequestOptions<T, ActualApiRes = undefined>
+export interface RequestOptions<T, ActualApiRes = T>
   extends CreateApiOptions<T, ActualApiRes>,
     Options {
   effect?: "takeLatest" | "takeLeading" | "takeEvery";
@@ -154,7 +154,7 @@ export interface MutationOptions {
   effect?: "takeLatest" | "takeLeading" | "takeEvery";
   invalidateTags?: Array<Tag>;
 }
-export interface MutationRequestOptions<T, ActualApiRes = undefined>
+export interface MutationRequestOptions<T, ActualApiRes = T>
   extends MutationOptions,
     Omit<CreateApiOptions<T, ActualApiRes>, "tags"> {}
 
