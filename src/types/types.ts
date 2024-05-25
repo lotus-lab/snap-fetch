@@ -33,7 +33,7 @@ export interface CreateApiOptions<T, ActualApiRes> {
   tags?: Tag;
   baseUrl?: string;
   cacheExpirationTime?: number;
-  transformResponse?: (response: ActualApiRes) => T;
+  transformResponse?: (response: ActualApiRes | unknown) => T;
 }
 
 /* --- STATE --- */
