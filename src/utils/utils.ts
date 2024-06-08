@@ -1,46 +1,63 @@
-import { Method, RequestPayload } from "../types/types";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import axios, { AxiosError } from "axios";
+import { Method, OmittedAxiosConfig, RequestPayload } from "../types/types";
+import { request } from "../api/axios";
 
-interface FetcherOptions extends RequestPayload, RequestInit {
-  customFetchFunction?: ((endpoint: string) => Promise<Response>) | undefined;
-  baseUrl: string;
-  endpoint: string | number;
+interface FetcherOptions extends RequestPayload, OmittedAxiosConfig {
+  customFetchFunction?: (url: string) => Promise<any>;
+  baseURL: string | undefined;
+  endpoint: string;
   queryParams?: URLSearchParams;
   method?: Method;
+  body?: any;
 }
 
 export const fetcher = async ({
   customFetchFunction,
-  baseUrl,
+  baseURL,
   endpoint,
   queryParams,
-  method,
-  ...rest
+  method = "GET",
+  body,
+  headers,
+  skipAuth,
 }: FetcherOptions) => {
-  const url = formatEndpoint(baseUrl, endpoint as string);
+  const url = formatEndpoint(baseURL!, endpoint as string);
+
+  const fullUrl = `${url}${queryParams?.toString() ? `?${queryParams}` : ""}`;
+
   if (customFetchFunction) {
-    return customFetchFunction(
-      `${url}${queryParams?.size ? `?${queryParams}` : ""}`
-    );
+    return customFetchFunction(fullUrl);
   }
 
-  if (["GET", "HEAD"].includes(method as string)) {
-    delete rest?.body;
-  }
-  return fetch(`${url}${queryParams?.size ? `?${queryParams}` : ""}`, {
-    method: method ?? "GET",
-    ...rest,
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
+  try {
+    const newHeaders: OmittedAxiosConfig["headers"] = { ...headers };
 
-      return response;
-    })
-    .then((data) => data)
-    .catch((error) => {
-      throw new Error(error);
+    if (skipAuth && newHeaders) {
+      delete newHeaders.Authorization;
+    }
+    const response = await request({
+      url: fullUrl,
+      method: method,
+      data: body,
+      headers: newHeaders,
     });
+
+    return response;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      const status = axiosError.response?.status;
+      const errorData = axiosError.response?.data as any;
+      throw {
+        status,
+        message: errorData?.message,
+        errorData,
+      };
+    } else {
+      throw { message: "Unexpected error:", errorData: error };
+    }
+  }
 };
 
 export function isEmpty(value: any): boolean {
@@ -106,11 +123,11 @@ export async function generateUniqueId(
 }
 
 export function formatEndpoint(baseUrl: string, endpoint: string): string {
-  if (endpoint.startsWith("/")) {
+  if (endpoint?.startsWith("/")) {
     endpoint = endpoint.substring(1);
   }
 
-  if (endpoint.endsWith("/")) {
+  if (endpoint?.endsWith("/")) {
     endpoint = endpoint.substring(0, endpoint.length - 1);
   }
 

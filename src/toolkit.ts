@@ -1,14 +1,12 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { CaseReducer, PayloadAction, createSlice } from "@reduxjs/toolkit";
 
 import {
   APiConfig,
-  EndpointResult,
+  ChangePageNoPayload,
   InvalidateCachePayload,
   QueryState,
   QueryType,
   RequestErrorPayload,
-  RequestPaginationPayload,
   RequestPayload,
   RequestSuccessPayload,
 } from "./types/types";
@@ -21,7 +19,8 @@ export const initialState: QueryState = {
     queries: {},
   },
   apiConfig: {
-    baseUrl: "",
+    baseURL: "",
+    cacheExpirationTime: 120,
   },
   actionsType: [],
 };
@@ -32,12 +31,11 @@ const requestActions: CaseReducer<QueryState, PayloadAction<RequestPayload>> = (
 ) => {
   const {
     endpoint,
-    tags,
+    tag,
     mutation,
     query,
     queryParams,
     hashKey,
-    pagination,
     transformResponse,
   } = action.payload;
 
@@ -46,13 +44,12 @@ const requestActions: CaseReducer<QueryState, PayloadAction<RequestPayload>> = (
     isLoading: true,
     isError: false,
     success: false,
-    tags,
+    tag,
     mutation,
     query,
     endpoint,
     queryParams,
     hashKey,
-    pagination,
     transformResponse,
   };
 
@@ -70,21 +67,18 @@ const requestActions: CaseReducer<QueryState, PayloadAction<RequestPayload>> = (
   }
 };
 
-const SnapFetchSlice = createSlice({
-  name: "snapFetch",
+const SnapSlice = createSlice({
+  name: "SnapFetch",
   initialState,
   reducers: {
     takeLeadingRequest: (state, action: PayloadAction<RequestPayload>) =>
       requestActions(state, action),
-    takeEveryRequest: (state, action: PayloadAction<RequestPayload>) =>
+    fetchDataAction: (state, action: PayloadAction<RequestPayload>) =>
       requestActions(state, action),
     takeLatestRequest: (state, action: PayloadAction<RequestPayload>) =>
       requestActions(state, action),
 
-    loading: (
-      state,
-      action: PayloadAction<RequestPayload & EndpointResult>
-    ) => {
+    loading: (state, action: PayloadAction<RequestPayload>) => {
       const { endpoint, mutation, query, hashKey } = action.payload;
       const loadingData = {
         isLoading: true,
@@ -96,13 +90,33 @@ const SnapFetchSlice = createSlice({
       if (query && hashKey) {
         state.endpoints.queries[hashKey] = {
           ...state.endpoints.queries[hashKey],
+          ...action.payload,
           ...loadingData,
         };
       }
 
-      if (mutation) {
+      if (mutation && endpoint) {
         state.endpoints.mutations[endpoint] = {
           ...state.endpoints.mutations[endpoint],
+          ...action.payload,
+          ...loadingData,
+        };
+      }
+    },
+    finishLoading: (
+      state,
+      action: PayloadAction<string | number | undefined>
+    ) => {
+      const loadingData = {
+        isLoading: false,
+        error: undefined,
+        isError: false,
+        success: false,
+      };
+
+      if (action.payload) {
+        state.endpoints.queries[action.payload] = {
+          ...state.endpoints.queries[action.payload],
           ...loadingData,
         };
       }
@@ -126,7 +140,7 @@ const SnapFetchSlice = createSlice({
         };
       }
 
-      if (mutation) {
+      if (mutation && endpoint) {
         state.endpoints.mutations[endpoint] = {
           ...state.endpoints.mutations[endpoint],
           ...successData,
@@ -147,95 +161,71 @@ const SnapFetchSlice = createSlice({
           ...failureData,
         };
       }
-      if (mutation) {
+      if (mutation && endpoint) {
         state.endpoints.mutations[endpoint] = {
           ...state.endpoints.mutations[endpoint],
           ...failureData,
         };
       }
     },
-    setPagination(state, action: PayloadAction<RequestPaginationPayload>) {
-      const { endpoint, pagination, mutation, query, hashKey } = action.payload;
 
-      if (query && hashKey) {
-        state.endpoints.queries[hashKey] = {
-          ...state.endpoints.queries[hashKey],
-          pagination,
-        };
-      }
-      if (mutation) {
-        state.endpoints.mutations[endpoint] = {
-          ...state.endpoints.mutations[endpoint],
-          pagination,
-        };
-      }
-    },
     clearState: (state, action: PayloadAction<QueryType>) => {
       const { endpoint, mutation, query, hashKey } = action.payload;
       if (query && hashKey) {
         state.endpoints.queries[hashKey] = endpointInitial;
       }
-      if (mutation) {
+      if (mutation && endpoint) {
         state.endpoints.mutations[endpoint] = endpointInitial;
       }
     },
     setApiConfig(state, action: PayloadAction<APiConfig>) {
-      state.apiConfig = action.payload;
+      state.apiConfig = { ...state.apiConfig, ...action.payload };
     },
 
     setNewCreatedAction(state, action: PayloadAction<string>) {
       state.actionsType = [...state.actionsType, action.payload];
     },
 
-    invalidateCache: (state, action: PayloadAction<InvalidateCachePayload>) => {
-      const { endpoint, tags, mutation, query, queryParams, hashKey } =
-        action.payload.requestPayload;
+    invalidateCache: (_, _action: PayloadAction<InvalidateCachePayload>) => {},
+    changePageNo: (state, action: PayloadAction<ChangePageNoPayload>) => {
+      const { hashKey, increase, debounce } = action.payload;
+      if (hashKey) {
+        const currentPageNo =
+          state.endpoints.queries[hashKey as string]?.pagination?.pageNo;
 
-      const requestData = {
-        error: undefined,
-        isLoading: true,
-        isError: false,
-        success: false,
-        tags,
-        mutation,
-        query,
-        endpoint,
-        queryParams,
-      };
-
-      if (query && hashKey) {
-        state.endpoints.queries[hashKey] = {
-          ...state.endpoints.queries[hashKey],
-          ...requestData,
-        };
+        if (increase && state.endpoints.queries[hashKey as string]) {
+          if (debounce) {
+            state.endpoints.queries[hashKey as string].debounce = debounce;
+          }
+          state.endpoints.queries[hashKey as string].pagination.pageNo =
+            Number(currentPageNo) + 1;
+        } else {
+          if (state.endpoints.queries[hashKey as string]) {
+            if (debounce) {
+              state.endpoints.queries[hashKey as string].debounce = debounce;
+            }
+            state.endpoints.queries[hashKey as string].pagination.pageNo =
+              Number(currentPageNo) - 1;
+          }
+        }
       }
-      if (mutation) {
-        state.endpoints.mutations[endpoint] = {
-          ...state.endpoints.mutations[endpoint],
-          ...requestData,
-        };
-      }
-    },
-    changePageNo: (
-      state,
-      action: PayloadAction<{ hashKey: string | undefined; value: number }>
-    ) => {
-      const { hashKey, value } = action.payload;
-      const currentPagination =
-        state.endpoints.queries[hashKey as string].pagination;
-      if (currentPagination) currentPagination.pageNo = value;
     },
     changeSize: (
       state,
-      action: PayloadAction<{ hashKey: string | undefined; value: number }>
+      action: PayloadAction<{
+        hashKey: string | number | undefined;
+        value: number;
+      }>
     ) => {
       const { hashKey, value } = action.payload;
       const currentPagination =
-        state.endpoints.queries[hashKey as string].pagination;
-      if (currentPagination) currentPagination.size = value;
+        state.endpoints.queries[hashKey as string]?.pagination;
+      if (currentPagination) {
+        currentPagination.size = value;
+      }
     },
   },
 });
 
 export const { reducer, actions, name, caseReducers, getInitialState } =
-  SnapFetchSlice;
+  SnapSlice;

@@ -25,9 +25,10 @@ export default merge(baseConfig, [
     external: [
       "react",
       "react-redux",
-      "redux-saga",
-      "redux-saga/effects",
+      "redux-Snap",
+      "redux-Snap/effects",
       "@reduxjs/toolkit",
+      "axios",
     ],
   },
 ]);

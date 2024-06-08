@@ -5,13 +5,10 @@ export const endpointInitial: EndpointResult = {
   isError: false,
   error: undefined,
   data: undefined,
-  pagination: {
-    pageNo: 1,
-    size: 10,
-  },
   success: false,
   mutation: false,
   query: false,
-  tags: undefined,
+  tag: undefined,
   queryParams: new URLSearchParams(""),
+  pagination: { pageNo: 1, size: 10 },
 };

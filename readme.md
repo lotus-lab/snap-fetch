@@ -1,16 +1,16 @@
-# SnapFetch Query Overview
+# Snap-Fetch Overview
 
 ## **WHAT WE'LL LEARN**
 
-- What Snap-Fetch is and what problems it solves
-- What APIs are included in Snap-Fetch
+- What snap-fetch is and what problems it solves
+- What APIs are included in snap-fetch
 - Basic usage
 
 ---
 
-## Snap-Fetch
+## snap-fetch
 
-**Snap-Fetch** is a light weight **data fetching tool** built for React that allows you to fetch data from an API, **cache it**, and store it in **Redux** using **Redux Toolkit** and **Redux Saga**. It provides **intuitive hooks** for performing \*8queries** and **mutations**, as well as a hook for configuring **global api options\*\*.
+**snap-fetch** is a light weight **data fetching tool** built for React that allows you to fetch data from an API, **cache it**, and store it in **Redux** using **Redux Toolkit** and **Redux Snap**. It provides **intuitive hooks** for performing \*8queries** and **mutations**, as well as a hook for configuring **global api options\*\*.
 
 ## Motivation
 
@@ -23,7 +23,7 @@ Web applications typically require data from a server in order to display it. Th
 
 ## Installation
 
-You can install Snap-Fetch using npm or yarn:
+You can install snap-fetch using npm or yarn:
 
 ```shell
 npm install snap-fetch
@@ -37,7 +37,7 @@ yarn add snap-fetch
 
 ## Add SnapFetch Sagas and Reducers To Your Redux Store
 
-### Add SnapFetch Reducers
+### Add Snap Reducers
 
 ```javascript
 import { name, reducer } from "snap-fetch";
@@ -55,12 +55,12 @@ export const rootReducer = combineReducers({
  */
 
 import { configureStore } from "@reduxjs/toolkit";
-import createSagaMiddleware from "redux-saga";
+import createSnapMiddleware from "redux-Snap";
 import { rootReducer } from "./reducers";
 import { rootSnapFetchSaga } from "snap-fetch";
 
 export function configureAppStore() {
-  const sagaMiddleware = createSagaMiddleware();
+  const SnapMiddleware = createSnapMiddleware();
 
   // Create the Redux store with middleware
   const store = configureStore({
@@ -68,11 +68,11 @@ export function configureAppStore() {
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
         serializableCheck: false,
-      }).concat(sagaMiddleware),
+      }).concat(SnapMiddleware),
   });
 
-  // Run the root saga
-  sagaMiddleware.run(rootSnapFetchSaga);
+  // Run the root Snap
+  SnapMiddleware.run(rootSnapFetchSaga);
   return { store };
 }
 ```
@@ -80,12 +80,12 @@ export function configureAppStore() {
 ## What's included
 
 1. [useSetBaseConfiguration](#useSetBaseConfiguration)
-2. [useSnapFetchQuery](#useSnapFetchQuery)
-3. [useSnapFetchMutation](#useSnapFetchMutation)
+2. [useSnapQuery](#useSnapQuery)
+3. [useSnapMutation](#useSnapMutation)
 
 ### useSetBaseConfiguration (Base Configuration)
 
-The `useSetBaseConfiguration` hook is used to configure the base options for SnapFetch.
+The `useSetBaseConfiguration` hook is used to configure the base options for Snap.
 
 ### Usage
 
@@ -123,9 +123,9 @@ useSetBaseConfiguration({
 });
 ```
 
-### useSnapFetchQuery (Query Hook)
+### useSnapQuery (Query Hook)
 
-This hook allows you to fetch data from the server using the sagas and store it in the redux store, it is configured to know if the same endpoint is called with the same queryParams, it would only refetch data if the cache is empty or mutated by mutation, or if queryParams are changed...
+This hook allows you to fetch data from the server using the Snaps and store it in the redux store, it is configured to know if the same endpoint is called with the same queryParams, it would only refetch data if the cache is empty or mutated by mutation, or if queryParams are changed...
 
 It uses the endpoint + queryParams to cache the state, which allow it to avoid unnecessary fetch requests.
 
@@ -136,7 +136,7 @@ it accepts two parameters
 
 ```javascript
 type RequestOptions = {
-  effect?: "takeLatest" | "takeLeading" | "takeEvery", // saga effect, default is "takeEvery"
+  effect?: "takeLatest" | "takeLeading" | "takeEvery", // Snap effect, default is "takeEvery"
   method?: Method,
   disableCaching?: boolean, // will disable caching for the current endpoint request
   fetchFunction?: (endpoint: string) => Promise<Response>, // custom fetch function if you don't like the built-in.
@@ -150,8 +150,8 @@ type RequestOptions = {
 
 ### Query Result
 
-The `useSnapFetchQuery` hook returns a query result object with the following properties:
-useSnapFetchQuery is a generic type function, the type is used to tell the type of the data returned from the api call.
+The `useSnapQuery` hook returns a query result object with the following properties:
+useSnapQuery is a generic type function, the type is used to tell the type of the data returned from the api call.
 
 - `data` (T | undefined): The fetched data.
 - `isLoading` (boolean): A flag indicating if the query is in progress.
@@ -162,7 +162,7 @@ useSnapFetchQuery is a generic type function, the type is used to tell the type 
 
 #### Pagination Options
 
-Queries have built in pagination support the result of useSnapFetchQuery will return a paginationOptions object with the following properties:
+Queries have built in pagination support the result of useSnapQuery will return a paginationOptions object with the following properties:
 
 ```javascript
 
@@ -185,7 +185,7 @@ Queries have built in pagination support the result of useSnapFetchQuery will re
 Import the necessary hooks from the `snap-fetch` package:
 
 ```javascript
-import { useSnapFetchQuery } from "snap-fetch";
+import { useSnapQuery } from "snap-fetch";
 ```
 
 ### 2. Querying Data
@@ -193,7 +193,7 @@ import { useSnapFetchQuery } from "snap-fetch";
 ```javascript
 const MyComponent = () => {
   const { data, isLoading, error } =
-    useSnapFetchQuery <
+    useSnapQuery <
     Users >
     ("users",
     {
@@ -218,7 +218,7 @@ const MyComponent = () => {
 };
 ```
 
-### useSnapFetchMutation (Mutation Hook)
+### useSnapMutation (Mutation Hook)
 
 This hook allows you to manipulate the data and make mutation calls it will automatically revalidate the cache if queries with the same endpoint are available.
 
@@ -229,7 +229,7 @@ This hook allows you to manipulate the data and make mutation calls it will auto
 
 ```javascript
 type RequestOptions = {
-  effect?: "takeLatest" | "takeLeading" | "takeEvery", // saga effect, default is "takeLeading"
+  effect?: "takeLatest" | "takeLeading" | "takeEvery", // Snap effect, default is "takeLeading"
   method?: Method,
   fetchFunction?: (endpoint: string) => Promise<Response>, // custom fetch function if you don't like the built-in.
   invalidateTags?: Tags, // Tags will be used to invalidate on mutation requests.
@@ -247,11 +247,11 @@ type RequestOptions = {
 
 ### 3. Mutating Data
 
-To perform a mutation and send data to the API, use the `useSnapFetchMutation` hook. Here's an example:
+To perform a mutation and send data to the API, use the `useSnapMutation` hook. Here's an example:
 
 ```javascript
 const MyComponent = () => {
-  const { mutate, isLoading, error } = useSnapFetchMutation("createUser", {
+  const { mutate, isLoading, error } = useSnapMutation("createUser", {
     invalidateTags: ["getUsers"],
   });
 

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable prefer-const */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -5,16 +6,16 @@ import { useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { actions } from "./toolkit";
-import {
-  selectMutationsData,
-  selectSnapFetchApiConfig,
-} from "./selectors/selectors";
+import { selectMutationsData } from "./selectors/selectors";
 import {
   BodyType,
   Method,
   MutationRequestOptions,
+  PayloadType,
   RequestPayload,
 } from "./types/types";
+import { createAction } from "@reduxjs/toolkit";
+import { useGenHashKey } from "./useGenHashKey";
 
 export interface Result<T> {
   data?: T | undefined;
@@ -29,25 +30,10 @@ export interface Result<T> {
   clear: () => void;
 }
 
-export const useSnapFetchMutation = <T, ActualApiRes = T>(
+export const useSnapMutation = <T, ActualApiRes = unknown>(
   endpoint: string,
   requestOptions: MutationRequestOptions<T, ActualApiRes> = {}
 ): Result<T | undefined> => {
-  const {
-    baseUrl: baseConfigUrl,
-    customFetchFunction,
-    ...rest
-  } = useSelector(selectSnapFetchApiConfig);
-
-  let {
-    invalidateTags,
-    effect = "takeLeading",
-    method,
-    body,
-    baseUrl = baseConfigUrl,
-    transformResponse,
-  } = requestOptions;
-
   const dispatch = useDispatch();
   const rmutationData = useSelector((state: any) =>
     selectMutationsData(state, endpoint as string)
@@ -62,64 +48,44 @@ export const useSnapFetchMutation = <T, ActualApiRes = T>(
       })
     );
   };
-  const restString = JSON.stringify(rest);
 
-  const customFetchString = JSON.stringify(customFetchFunction);
-  const invalidateTagsString = JSON.stringify(invalidateTags);
+  const { hashKey } = useGenHashKey(endpoint);
 
   const mutate = useCallback(
     async (handlerBody?: any, requestInit?: Partial<RequestInit>) => {
       const responseData = await new Promise<T>((resolve, reject) => {
-        let bodyType: BodyType | undefined = handlerBody;
+        // let bodyType: BodyType | undefined = handlerBody;
 
         if (handlerBody?.constructor?.name?.includes("Event")) {
           // Provide a default value for the body or ignore it
           // For example, you can assign an empty object as the default body
-          bodyType = "";
+          handlerBody = "";
         }
 
-        if (body?.constructor?.name?.includes("Event")) {
-          body = "";
-        }
-
-        const stringBody = JSON.stringify(bodyType || body);
         const payload: RequestPayload = {
           endpoint,
-          invalidateTags,
-          fetchFunctionIsOutsider: !!customFetchFunction,
+          fetchFunctionIsOutsider: !!requestOptions.fetchFunction,
           resolve,
           reject,
           mutation: true,
           query: false,
-          body: stringBody,
-          method: (requestInit?.method ?? method ?? "POST") as Method,
-          baseUrl,
-          //@ts-ignore
-          transformResponse,
+          body: handlerBody || requestOptions.body,
+          method: (requestInit?.method ??
+            requestOptions.method ??
+            "POST") as Method,
+          ...requestOptions,
         };
 
-        switch (effect) {
-          case "takeLatest":
-            dispatch(actions.takeLatestRequest(payload));
-            break;
-          case "takeLeading":
-            dispatch(actions.takeLeadingRequest(payload));
-            break;
-          default:
-            dispatch(actions.takeEveryRequest(payload));
-        }
+        const hashKeyAction = createAction<
+          Partial<PayloadType<T, ActualApiRes>> | undefined
+        >(`hash-${hashKey}`);
+
+        dispatch(hashKeyAction({ ...payload, hashKey }));
       });
 
       return responseData;
     },
-    [
-      endpoint,
-      restString,
-      baseUrl,
-      effect,
-      customFetchString,
-      invalidateTagsString,
-    ]
+    [endpoint, JSON.stringify(requestOptions), hashKey]
   );
 
   useEffect(() => {

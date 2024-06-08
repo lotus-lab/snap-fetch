@@ -1,46 +1,47 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { all, call, put, select } from "redux-saga/effects";
 import { APiConfig, EndpointResult, RequestPayload } from "../types/types";
 import {
   selectQueriesDataByTags,
-  selectSnapFetchApiConfig,
+  selectSnapApiConfig,
 } from "../selectors/selectors";
 import { fetcher } from "../utils/utils";
-import { PayloadAction } from "@reduxjs/toolkit";
 import { actions } from "../toolkit";
 
-export function* fetchSaga(action: PayloadAction<RequestPayload>) {
+export function* fetchSnap(payload: RequestPayload) {
   const {
     endpoint,
     resolve,
-
     mutation,
     query,
-    fetchFunctionIsOutsider,
     hashKey,
     invalidateTags,
     transformResponse,
-  } = action.payload;
+  } = payload;
 
   let data: unknown;
 
-  const baseApiConfig: APiConfig = yield select(selectSnapFetchApiConfig);
+  const baseApiConfig: APiConfig = yield select(selectSnapApiConfig);
+  const fetcherPayload: RequestPayload<any, any> = {
+    ...baseApiConfig,
+    ...payload,
+    headers: { ...baseApiConfig.headers, ...payload.headers },
+  };
 
-  const response: Response & string = yield call(() =>
-    fetcher({
-      ...baseApiConfig,
-      ...action.payload,
-    })
-  );
+  //@ts-ignore
+  const response: Response = yield call(() => fetcher(fetcherPayload));
 
-  if (fetchFunctionIsOutsider) {
-    data = yield response;
-  } else {
-    data = yield response?.json();
-  }
+  data = yield response;
 
   if (resolve) {
     yield resolve(data);
   }
+
+  if (transformResponse && data) {
+    data = yield transformResponse(data);
+  }
+  yield put(actions.success({ data, endpoint, mutation, query, hashKey }));
 
   if (mutation && response && invalidateTags) {
     const allQueriesWithTag: Array<EndpointResult> = yield select((state) =>
@@ -51,7 +52,7 @@ export function* fetchSaga(action: PayloadAction<RequestPayload>) {
         (queryCatchData) =>
           put(
             actions.invalidateCache({
-              requestPayload: action.payload,
+              requestPayload: payload,
               queryCatchData,
             })
           )
@@ -60,9 +61,4 @@ export function* fetchSaga(action: PayloadAction<RequestPayload>) {
       yield all(arrayOfPuts);
     }
   }
-  if (transformResponse) {
-    data = yield transformResponse(data);
-  }
-
-  yield put(actions.success({ data, endpoint, mutation, query, hashKey }));
 }

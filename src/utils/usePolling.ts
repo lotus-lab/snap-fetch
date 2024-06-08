@@ -2,9 +2,9 @@ import { useCallback, useEffect, useRef } from "react";
 
 interface Props {
   pollingInterval: number | undefined;
-  fetchData: (isPolling?: boolean) => Promise<void>;
+  refetch: () => void;
 }
-export const usePolling = ({ fetchData, pollingInterval }: Props) => {
+export const usePolling = ({ refetch, pollingInterval }: Props) => {
   /** @Polling */
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -21,10 +21,10 @@ export const usePolling = ({ fetchData, pollingInterval }: Props) => {
 
     if (pollingInterval) {
       timerRef.current = setInterval(() => {
-        fetchData(true);
+        refetch();
       }, pollingInterval * 1000);
     }
-  }, [pollingInterval, fetchData, stopTimer]);
+  }, [pollingInterval, JSON.stringify(refetch), stopTimer]);
 
   useEffect(() => {
     startTimer();
@@ -32,6 +32,6 @@ export const usePolling = ({ fetchData, pollingInterval }: Props) => {
     return () => {
       stopTimer();
     };
-  }, [fetchData, startTimer, stopTimer]);
+  }, [startTimer, stopTimer]);
   return {};
 };

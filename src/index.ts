@@ -7,8 +7,8 @@ export {
   initialState,
 } from "./toolkit";
 
-export { useSnapFetchQuery } from "./useSnapFetchQuery";
-export { useSnapFetchMutation } from "./useSnapFetchMutation";
+export { useSnapQuery } from "./useSnapQuery";
+export { useSnapMutation } from "./useSnapMutation";
 export { useGenHashKey } from "./useGenHashKey";
 export { useSetBaseConfiguration } from "./useSetBaseConfiguration";
 export { rootSnapFetchSaga } from "./saga/saga";

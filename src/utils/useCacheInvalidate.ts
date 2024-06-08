@@ -2,25 +2,24 @@ import { useCallback, useEffect } from "react";
 import { EndpointResult } from "../types/types";
 
 interface Props {
-  snapFetchData: EndpointResult | undefined;
+  SnapFetchData: EndpointResult | undefined;
   cacheExpirationTime: number | undefined;
-  fetchData: () => Promise<void>;
+  refetch: () => void;
 }
 export const useCacheInvalidate = ({
-  snapFetchData,
+  SnapFetchData,
   cacheExpirationTime,
-  fetchData,
+  refetch,
 }: Props) => {
-  const refetchOnCacheLimitPassed = useCallback(() => {
-    if (cacheExpirationTime && snapFetchData?.createdAt) {
-      if (
-        snapFetchData.createdAt.getTime() + cacheExpirationTime * 1000 <
-        new Date().getTime()
-      ) {
-        fetchData();
-      }
-    }
-  }, [cacheExpirationTime, snapFetchData?.createdAt]);
+  const refetchOnCacheLimitPassed = useCallback(
+    () =>
+      cacheExpirationTime &&
+      SnapFetchData?.createdAt &&
+      SnapFetchData.createdAt.getTime() + cacheExpirationTime * 1000 <
+        Date.now() &&
+      refetch(),
+    [cacheExpirationTime, SnapFetchData?.createdAt]
+  );
 
   useEffect(() => {
     refetchOnCacheLimitPassed();

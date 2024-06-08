@@ -1,57 +1,67 @@
 import { useCallback, useMemo } from "react";
 import { useDispatch } from "react-redux";
-import { actions } from "../toolkit";
+import { actions } from "src/toolkit";
+import { suffixCache } from "../saga/saga";
 
-interface PaginationValue {
-  data: Array<unknown> | null | undefined;
+interface Props {
+  hashKey: string | number | undefined;
   total: number;
   pageNo: number | undefined;
   size: number | undefined;
-  hashKey: string | undefined;
 }
-
-export const usePagination = ({
-  data,
-  total,
-  pageNo,
-  size,
-  hashKey,
-}: PaginationValue) => {
+export const usePagination = ({ hashKey, total, pageNo, size }: Props) => {
   const dispatch = useDispatch();
 
   const lastPage = useMemo(() => {
-    return Math.ceil(total / Number(size || 1)) || 1;
+    return Math.ceil(Number(total) / Number(size || 1)) || 1;
   }, [total, size]);
-
-  const changePageNo = useCallback(
-    (value: number) => {
-      dispatch(
-        actions.changePageNo({
-          hashKey,
-          value,
-        })
-      );
-    },
-    [hashKey]
-  );
 
   const changeSize = useCallback(
     (value: number) => {
-      dispatch(
-        actions.changeSize({
-          hashKey,
-          value,
-        })
-      );
+      if (hashKey) {
+        suffixCache.delete(hashKey);
+        dispatch(
+          actions.changeSize({
+            hashKey,
+            value,
+          })
+        );
+      }
     },
     [hashKey]
   );
 
+  const next = (debounce?: number) => {
+    if (hashKey) {
+      suffixCache.delete(hashKey);
+      dispatch(
+        actions.changePageNo({
+          hashKey,
+          increase: true,
+          debounce,
+        })
+      );
+    }
+  };
+
+  const prev = (debounce?: number) => {
+    if (hashKey) {
+      suffixCache.delete(hashKey);
+      dispatch(
+        actions.changePageNo({
+          hashKey,
+          increase: false,
+          debounce,
+        })
+      );
+    }
+  };
+
   return {
     lastPage,
-    currentShowingItems: data?.length,
+    prev,
     totalItems: total,
-    changePageNo,
+    next,
     changeSize,
     pageNo,
     size,
