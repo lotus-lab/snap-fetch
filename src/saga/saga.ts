@@ -13,7 +13,10 @@ import {
 } from "redux-saga/effects";
 import { PayloadAction } from "@reduxjs/toolkit";
 
-import { selectQueriesData, selectSnapApiConfig } from "../selectors/selectors";
+import {
+  selectQueriesData,
+  selectSagaQueryApiConfig,
+} from "../selectors/selectors";
 import { actions } from "../toolkit";
 import {
   APiConfig,
@@ -22,11 +25,11 @@ import {
   Pagination,
   RequestPayload,
 } from "../types/types";
-import { fetchSnap } from "./fetchSaga";
+import { fetchSaga } from "./fetchSaga";
 import { fetcher } from "../utils/utils";
-// import {CustomURLSearchParams} from 'snap-fetch';
+// import {CustomURLSearchParams} from 'saga-query';
 
-export const suffixCache = new Map();
+export const suffixCache = new Set();
 function* handleFetchDataRequest(action: PayloadAction<RequestPayload>) {
   let {
     endpoint,
@@ -38,11 +41,11 @@ function* handleFetchDataRequest(action: PayloadAction<RequestPayload>) {
     skip,
     debounce,
     filter,
-    single,
+    usePagination,
   } = action.payload;
 
   try {
-    const hashData: EndpointResult = yield select((state: any) =>
+    const hashData: EndpointResult = yield select((state) =>
       selectQueriesData(state, hashKey as string)
     );
     if (hashData.debounce) {
@@ -61,11 +64,11 @@ function* handleFetchDataRequest(action: PayloadAction<RequestPayload>) {
       });
     }
 
-    if (pagination?.pageNo && !single) {
+    if (pagination?.pageNo && usePagination) {
       queryParams.set("pageNo", pagination.pageNo.toString());
     }
 
-    if (pagination?.size && !single) {
+    if (pagination?.size && usePagination) {
       queryParams.set("size", pagination.size.toString());
     }
 
@@ -74,10 +77,9 @@ function* handleFetchDataRequest(action: PayloadAction<RequestPayload>) {
     }
     if (!skip) {
       yield put(actions.loading({ ...action.payload, queryParams }));
-      yield call(() => fetchSnap({ ...action.payload, queryParams }));
+      yield call(() => fetchSaga({ ...action.payload, queryParams }));
     }
   } catch (err) {
-    console.log(err);
     suffixCache.delete(hashKey);
     yield put(
       actions.failure({
@@ -92,13 +94,13 @@ function* handleFetchDataRequest(action: PayloadAction<RequestPayload>) {
       reject(err);
     }
   } finally {
-    if (disableCaching || mutation) {
+    if (disableCaching || mutation || skip) {
       suffixCache.delete(hashKey);
     }
   }
 }
 
-function* invalidateCatchSnap(action: PayloadAction<InvalidateCachePayload>) {
+function* invalidateCatchSaga(action: PayloadAction<InvalidateCachePayload>) {
   const { mutation, fetchFunctionIsOutsider } = action.payload.requestPayload;
 
   const { queryCatchData } = action.payload;
@@ -113,7 +115,7 @@ function* invalidateCatchSnap(action: PayloadAction<InvalidateCachePayload>) {
       })
     );
 
-    const baseApiConfig: APiConfig = yield select(selectSnapApiConfig);
+    const baseApiConfig: APiConfig = yield select(selectSagaQueryApiConfig);
 
     if (
       mutation &&
@@ -177,7 +179,7 @@ function* watchAllHashActions() {
         return false;
       }
       if (suffix) {
-        suffixCache.set(suffix, true);
+        suffixCache.add(suffix);
         return true;
       }
     } else {
@@ -192,18 +194,16 @@ function* watchAllHashActions() {
         return false;
       }
       if (suffix) {
-        suffixCache.set(suffix, true);
+        suffixCache.add(suffix);
         return true;
       }
     } else {
       return false;
     }
   }, handleFetchDataRequest);
-  yield takeEvery(actions.invalidateCache.type, invalidateCatchSnap);
-  yield takeLeading(actions.takeLeadingRequest.type, handleFetchDataRequest);
-  yield takeLatest(actions.takeLatestRequest.type, handleFetchDataRequest);
+  yield takeEvery(actions.invalidateCache.type, invalidateCatchSaga);
 }
 
-export function* rootSnapFetchSaga() {
+export function* rootSagaFetchSaga() {
   yield all([fork(watchAllHashActions)]);
 }

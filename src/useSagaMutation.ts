@@ -15,7 +15,7 @@ import {
   RequestPayload,
 } from "./types/types";
 import { createAction } from "@reduxjs/toolkit";
-import { useGenHashKey } from "./useGenHashKey";
+import { useGenHashKey } from ".";
 
 export interface Result<T> {
   data?: T | undefined;
@@ -30,7 +30,7 @@ export interface Result<T> {
   clear: () => void;
 }
 
-export const useSnapMutation = <T, ActualApiRes = unknown>(
+export const useSagaMutation = <T, ActualApiRes = unknown>(
   endpoint: string,
   requestOptions: MutationRequestOptions<T, ActualApiRes> = {}
 ): Result<T | undefined> => {

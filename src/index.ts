@@ -7,12 +7,12 @@ export {
   initialState,
 } from "./toolkit";
 
-export { useSnapQuery } from "./useSnapQuery";
-export { useSnapMutation } from "./useSnapMutation";
+export { useSagaQuery } from "./useSagaQuery";
+export { useSagaMutation } from "./useSagaMutation";
 export { useGenHashKey } from "./useGenHashKey";
 export { useSetBaseConfiguration } from "./useSetBaseConfiguration";
-export { rootSnapFetchSaga } from "./saga/saga";
+export { rootSagaFetchSaga } from "./saga/saga";
 
-export * from "./types/types";
+export type * from "./types/types";
 
 export * from "./utils/utils";

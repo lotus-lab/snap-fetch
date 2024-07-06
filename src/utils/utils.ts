@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios, { AxiosError } from "axios";
-import { Method, OmittedAxiosConfig, RequestPayload } from "../types/types";
+import type {
+  Method,
+  OmittedAxiosConfig,
+  RequestPayload,
+} from "../types/types";
 import { request } from "../api/axios";
 
 interface FetcherOptions extends RequestPayload, OmittedAxiosConfig {

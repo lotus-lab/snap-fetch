@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Dispatch } from "@reduxjs/toolkit";
 import { AxiosRequestConfig } from "axios";
+import {} from "redux-saga";
 
 export type KeysOfEndpointSate = { [key: string]: EndpointResult };
 
@@ -122,7 +123,7 @@ export interface Options {
   filter?: { [key: string]: number | boolean | string | undefined | null };
   pollingInterval?: number;
   skip?: boolean;
-  single?: boolean;
+  usePagination?: boolean;
 }
 
 export type Method =
@@ -136,15 +137,18 @@ export type Method =
   | "PATCH";
 export interface RequestOptions<T, ActualApiRes = undefined>
   extends CreateApiOptions<T, ActualApiRes>,
-    Options {
+    Options,
+    OmittedAxiosConfig {
   effect?: "takeLatest" | "takeLeading" | "takeEvery";
   method?: Method;
   disableCaching?: boolean;
   disableRefetchOnReconnect?: boolean;
   debounce?: number;
+  suffixUrl?: string | number;
+  skipAuth?: boolean;
 }
 
-export interface SnapResult<T>
+export interface SnapFetchResult<T>
   extends Omit<EndpointResult, "transformResponse"> {
   data?: T | undefined;
   refetch: () => void;
@@ -188,8 +192,8 @@ export interface MutationOptions {
   method?: Method;
   body?: BodyType;
   isFormData?: boolean;
-  effect?: "takeLatest" | "takeLeading" | "takeEvery";
   invalidateTags?: Array<Tag>;
+  suffixUrl?: string | number | undefined;
 }
 export interface MutationRequestOptions<T, ActualApiRes = undefined>
   extends MutationOptions,
@@ -216,6 +220,7 @@ export interface PayloadType<T, ActualApiRes>
   hashKey: string | number | undefined;
   fetchFunctionIsOutsider: boolean;
   pagination?: Pagination;
+  createdAt?: Date | undefined;
 }
 
 export type ChangePageNoPayload = {

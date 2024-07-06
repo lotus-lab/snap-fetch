@@ -7,7 +7,6 @@ export const request = async <T, R = AxiosResponse<T>>(
     const response = await axios.request(config);
     return response.data;
   } catch (error) {
-    console.error("Request error:", error);
     throw error;
   }
 };

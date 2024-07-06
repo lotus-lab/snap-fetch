@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { CaseReducer, PayloadAction, createSlice } from "@reduxjs/toolkit";
 
 import {
@@ -20,7 +21,7 @@ export const initialState: QueryState = {
   },
   apiConfig: {
     baseURL: "",
-    cacheExpirationTime: 120,
+    cacheExpirationTime: 2,
   },
   actionsType: [],
 };
@@ -67,8 +68,8 @@ const requestActions: CaseReducer<QueryState, PayloadAction<RequestPayload>> = (
   }
 };
 
-const SnapSlice = createSlice({
-  name: "SnapFetch",
+const SnapFetchSlice = createSlice({
+  name: "sagaQuery",
   initialState,
   reducers: {
     takeLeadingRequest: (state, action: PayloadAction<RequestPayload>) =>
@@ -186,7 +187,10 @@ const SnapSlice = createSlice({
       state.actionsType = [...state.actionsType, action.payload];
     },
 
-    invalidateCache: (_, _action: PayloadAction<InvalidateCachePayload>) => {},
+    invalidateCache: (
+      _state,
+      _action: PayloadAction<InvalidateCachePayload>
+    ) => {},
     changePageNo: (state, action: PayloadAction<ChangePageNoPayload>) => {
       const { hashKey, increase, debounce } = action.payload;
       if (hashKey) {
@@ -228,4 +232,4 @@ const SnapSlice = createSlice({
 });
 
 export const { reducer, actions, name, caseReducers, getInitialState } =
-  SnapSlice;
+  SnapFetchSlice;

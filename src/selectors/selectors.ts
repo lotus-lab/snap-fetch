@@ -13,13 +13,13 @@ import { endpointInitial } from "../constants";
 import { isEqual } from "../utils/utils";
 
 const selectSlice = (state: any) => state;
-const selectRQuerySlice: (state: any) => QueryState = createSelector(
+const selectSagaQuerySlice: (state: any) => QueryState = createSelector(
   [selectSlice],
-  (state: any) => state?.SnapFetch
+  (state: any) => state?.sagaQuery
 );
 
 export const selectQueryData: (state: any) => EndpointState | undefined =
-  createSelector([selectSlice], (state) => state?.SnapFetch?.endpoints);
+  createSelector([selectSlice], (state) => state?.sagaQuery?.endpoints);
 
 export const selectQueriesData: (
   state: any,
@@ -61,12 +61,5 @@ export const selectMutationsData: (
   }
 );
 
-export const selectSnapApiConfig: (state: any) => APiConfig = createSelector(
-  [selectRQuerySlice],
-  (state) => state?.apiConfig
-);
-
-export const selectSnapCreatedActions: (state: any) => Array<string> =
-  createSelector([selectSlice], (state) => {
-    return state?.SnapFetch?.actionsType;
-  });
+export const selectSagaQueryApiConfig: (state: any) => APiConfig =
+  createSelector([selectSagaQuerySlice], (state) => state?.apiConfig);

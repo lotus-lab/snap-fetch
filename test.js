@@ -158,5 +158,3 @@ function rgbToHex(r, g, b) {
   var hexB = b.toString(16).padStart(2, "0");
   return "#" + hexR + hexG + hexB;
 }
-
-console.log(generateShades("#00C7FF"));
