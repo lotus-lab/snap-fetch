@@ -1,21 +1,21 @@
 import { useSelector } from "react-redux";
-import type { EndpointResult, RequestOptions } from "../../types/types";
+import type { EndpointResult } from "../../types/types";
 import { useMemo } from "react";
 import { selectSagaQueryApiConfig } from "../../selectors/selectors";
 
-interface Options<T, ActualApiRes> {
+interface Options {
   sagaQueryData: EndpointResult;
   endpoint: string;
-  requestOptions: RequestOptions<T, ActualApiRes>;
+  requestOptions: any;
   hashKey: string;
 }
 
-export function useQueryPayload<T, ActualApiRes>({
+export function useQueryPayload({
   endpoint,
   hashKey,
   requestOptions,
   sagaQueryData,
-}: Options<T, ActualApiRes>) {
+}: Options) {
   const baseConfig = useSelector(selectSagaQueryApiConfig);
   return useMemo(() => {
     return {
@@ -32,7 +32,6 @@ export function useQueryPayload<T, ActualApiRes>({
         size: sagaQueryData?.pagination?.size ?? 10,
       },
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     JSON.stringify(requestOptions),
     JSON.stringify(baseConfig),

@@ -5,7 +5,7 @@ import type { CreateApi } from "./type";
 import type {
   MutationRequestOptions,
   RequestOptions,
-  SnapFetchResult,
+  SagaQueryResult,
 } from "../../types/types";
 
 type ApiHooks<
@@ -22,7 +22,7 @@ type ApiHooks<
   generatedQueryHooks: {
     [K in keyof QueryFns]: (
       payload?: Parameters<QueryFns[K]>[0]
-    ) => SnapFetchResult<T>;
+    ) => SagaQueryResult<T>;
   };
   generatedMutationHooks: {
     [K in keyof MutationFns]: (
@@ -37,7 +37,7 @@ type ApiHooks<
 // }: CreateApi<T, ActualApiRes>) => {
 //   type QueryApiKeys = keyof typeof builder.query;
 //   type QueryApiHooks = {
-//     [K in QueryApiKeys]: (payload?: any) => SnapFetchResult<T>;
+//     [K in QueryApiKeys]: (payload?: any) => SagaQueryResult<T>;
 //   };
 
 //   const generatedQueryHooks: QueryApiHooks = builder.query
@@ -113,7 +113,7 @@ export const createApi = <
   type QueryApiHooks = {
     [K in QueryApiKeys]: (
       payload?: Parameters<QueryFns[K]>[0]
-    ) => SnapFetchResult<T>;
+    ) => SagaQueryResult<T>;
   };
 
   const generatedQueryHooks: QueryApiHooks = builder.query

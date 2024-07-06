@@ -28,6 +28,8 @@ export default merge(baseConfig, [
       "redux-Snap",
       "redux-Snap/effects",
       "@reduxjs/toolkit",
+      "redux-saga",
+      "redux-saga/effects",
       "axios",
     ],
   },

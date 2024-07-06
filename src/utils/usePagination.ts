@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from "react";
 import { useDispatch } from "react-redux";
-import { actions } from "..";
+import { actions } from "../toolkit";
 import { suffixCache } from "../saga/saga";
 
 interface Props {

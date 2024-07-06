@@ -6,7 +6,6 @@ import {
   fork,
   put,
   select,
-  takeLeading,
   takeEvery,
   delay,
   takeLatest,

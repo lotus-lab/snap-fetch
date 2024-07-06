@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Dispatch } from "@reduxjs/toolkit";
-import { AxiosRequestConfig } from "axios";
-import {} from "redux-saga";
+import type { Dispatch } from "@reduxjs/toolkit";
+import type { AxiosRequestConfig } from "axios";
 
 export type KeysOfEndpointSate = { [key: string]: EndpointResult };
 
@@ -148,7 +147,7 @@ export interface RequestOptions<T, ActualApiRes = undefined>
   skipAuth?: boolean;
 }
 
-export interface SnapFetchResult<T>
+export interface SagaQueryResult<T>
   extends Omit<EndpointResult, "transformResponse"> {
   data?: T | undefined;
   refetch: () => void;

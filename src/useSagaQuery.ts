@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import type { RequestOptions, SnapFetchResult } from "./types/types";
+import type { RequestOptions, SagaQueryResult } from "./types/types";
 import { selectQueriesData } from "./selectors/selectors";
 
 import { useGenHashKey } from "./useGenHashKey";
@@ -20,7 +20,7 @@ export const newActions: Array<ActionCreatorWithPayload<any, string>> = [];
 export const useSagaQuery = <T, ActualApiRes = unknown>(
   endpoint: string,
   requestOptions: RequestOptions<T, ActualApiRes> = {}
-): SnapFetchResult<T> => {
+): SagaQueryResult<T> => {
   const dispatch = useDispatch();
   const filterString = useMemo(
     () => JSON.stringify(requestOptions?.filter ?? {}),
