@@ -4,7 +4,7 @@ import { all, call, put, select } from "redux-saga/effects";
 import { APiConfig, EndpointResult, RequestPayload } from "../types/types";
 import {
   selectQueriesDataByTags,
-  selectSagaQueryApiConfig,
+  selectSnapQueryApiConfig,
 } from "../selectors/selectors";
 import { fetcher } from "../utils/utils";
 import { actions } from "../toolkit";
@@ -22,7 +22,7 @@ export function* fetchSaga(payload: RequestPayload) {
 
   let data: unknown;
 
-  const baseApiConfig: APiConfig = yield select(selectSagaQueryApiConfig);
+  const baseApiConfig: APiConfig = yield select(selectSnapQueryApiConfig);
   const fetcherPayload: RequestPayload<any, any> = {
     ...baseApiConfig,
     ...payload,

@@ -13,7 +13,7 @@ import { endpointInitial } from "../constants";
 import { isEqual } from "../utils/utils";
 
 const selectSlice = (state: any) => state;
-const selectSagaQuerySlice: (state: any) => QueryState = createSelector(
+const selectSnapQuerySlice: (state: any) => QueryState = createSelector(
   [selectSlice],
   (state: any) => state?.sagaQuery
 );
@@ -61,5 +61,5 @@ export const selectMutationsData: (
   }
 );
 
-export const selectSagaQueryApiConfig: (state: any) => APiConfig =
-  createSelector([selectSagaQuerySlice], (state) => state?.apiConfig);
+export const selectSnapQueryApiConfig: (state: any) => APiConfig =
+  createSelector([selectSnapQuerySlice], (state) => state?.apiConfig);

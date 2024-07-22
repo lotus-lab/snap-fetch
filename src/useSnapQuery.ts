@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import type { RequestOptions, SagaQueryResult } from "./types/types";
+import type {
+  RefetchOptions,
+  RequestOptions,
+  SnapQueryResult,
+} from "./types/types";
 import { selectQueriesData } from "./selectors/selectors";
 
 import { useGenHashKey } from "./useGenHashKey";
@@ -17,10 +21,10 @@ import { useQueryNetworkStatus } from "./utils/queryHooks/useQueryNetworkStatus"
 
 export const newActions: Array<ActionCreatorWithPayload<any, string>> = [];
 
-export const useSagaQuery = <T, ActualApiRes = unknown>(
+export const useSnapQuery = <T, ActualApiRes = unknown>(
   endpoint: string,
   requestOptions: RequestOptions<T, ActualApiRes> = {}
-): SagaQueryResult<T> => {
+): SnapQueryResult<T> => {
   const dispatch = useDispatch();
   const filterString = useMemo(
     () => JSON.stringify(requestOptions?.filter ?? {}),
@@ -64,13 +68,15 @@ export const useSagaQuery = <T, ActualApiRes = unknown>(
    *
    * This function is typically used when the user requests a manual refetch of the data, or when the cache for the data has expired and needs to be refreshed.
    */
-  const refetch = useCallback(() => {
-    if (hashKey) {
-      suffixCache.delete(hashKey);
-      actionCreated(false);
-    }
-  }, [hashKey, actionCreated]);
-
+  const refetch = useCallback(
+    ({ resetPagination, staleWhileRevalidate }: RefetchOptions = {}) => {
+      if (hashKey) {
+        suffixCache.delete(hashKey);
+        actionCreated({ skip: false, resetPagination, staleWhileRevalidate });
+      }
+    },
+    [hashKey, actionCreated]
+  );
   /** @RefetchOnReconnect */
   useQueryNetworkStatus(refetch);
 
@@ -102,7 +108,6 @@ export const useSagaQuery = <T, ActualApiRes = unknown>(
    * This function first deletes the cache entry for the `hashKey`, then dispatches an action to clear the corresponding state in the application.
    *
    * @param hashKey - The unique identifier for the cached data to be cleared.
-   * @param dispatch - The Redux dispatch function used to dispatch the action to clear the state.
    */
   const clear = useCallback(() => {
     if (hashKey) {
@@ -118,7 +123,7 @@ export const useSagaQuery = <T, ActualApiRes = unknown>(
         );
       });
     }
-  }, [hashKey, dispatch]);
+  }, [hashKey]);
 
   return {
     refetch,

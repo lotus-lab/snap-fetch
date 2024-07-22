@@ -40,6 +40,14 @@ export interface RequestPayload<T = any, ActualApiRes = any>
   skipAuth?: boolean;
   // headers?: AxiosHeaders;
   body?: BodyType;
+  /**
+   * Specifies whether to use the stale-while-revalidate caching strategy for the API request.
+   * When set to `true`, the cached response will be returned immediately, even if it is stale,
+   * and a background request will be made to update the cache.
+   * This can improve perceived performance by providing a faster response, while still ensuring
+   * the data is eventually updated.
+   */
+  staleWhileRevalidate?: boolean;
 }
 export type UseQueryOptions = {
   requestInit?: OmittedAxiosConfig;
@@ -56,6 +64,9 @@ export interface CreateApiOptions<T, ActualApiRes> {
 /* --- STATE --- */
 
 export interface APiConfig extends OmittedAxiosConfig {
+  /**
+   * The base URL for the API requests.
+   */
   baseURL: string;
   /**
    * @default 90 (second or 1.5 minute)
@@ -69,10 +80,26 @@ export interface APiConfig extends OmittedAxiosConfig {
    */
   disableCaching?: boolean;
   customFetchFunction?: ((endpoint: string) => Promise<Response>) | undefined;
+
+  /**
+   * The HTTP method to use for the API request.
+   */
   method?: Method;
-  // headers?: AxiosHeaders;
+  /**
+   * Disables the automatic refetching of queries when the network reconnects.
+   * This can be useful to prevent unnecessary data fetches after a network interruption.
+   */
   disableRefetchOnReconnect?: boolean;
+
+  /**
+   * Indicates whether to skip authentication for the API request.
+   */
   skipAuth?: boolean;
+
+  /**
+   * Specifies a debounce delay in milliseconds for the API request. This can be used to prevent excessive API calls when the user is rapidly interacting with the UI.
+   * Best for search or filters
+   */
   debounce?: number;
 }
 
@@ -147,10 +174,10 @@ export interface RequestOptions<T, ActualApiRes = undefined>
   skipAuth?: boolean;
 }
 
-export interface SagaQueryResult<T>
+export interface SnapQueryResult<T>
   extends Omit<EndpointResult, "transformResponse"> {
   data?: T | undefined;
-  refetch: () => void;
+  refetch: (options?: RefetchOptions) => void;
   clear: () => void;
   paginationOptions: PaginationOptions;
   dispatch: Dispatch<any>;
@@ -220,6 +247,7 @@ export interface PayloadType<T, ActualApiRes>
   fetchFunctionIsOutsider: boolean;
   pagination?: Pagination;
   createdAt?: Date | undefined;
+  staleWhileRevalidate?: boolean;
 }
 
 export type ChangePageNoPayload = {
@@ -227,4 +255,9 @@ export type ChangePageNoPayload = {
   increase: boolean;
   debounce?: number;
   // command: () => void;
+};
+
+export type RefetchOptions = {
+  resetPagination?: boolean;
+  staleWhileRevalidate?: boolean;
 };

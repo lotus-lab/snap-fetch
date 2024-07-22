@@ -21,7 +21,7 @@ export const initialState: QueryState = {
   },
   apiConfig: {
     baseURL: "",
-    cacheExpirationTime: 2,
+    cacheExpirationTime: 90,
   },
   actionsType: [],
 };
@@ -80,9 +80,14 @@ const SnapFetchSlice = createSlice({
       requestActions(state, action),
 
     loading: (state, action: PayloadAction<RequestPayload>) => {
-      const { endpoint, mutation, query, hashKey } = action.payload;
+      const { endpoint, mutation, query, hashKey, staleWhileRevalidate } =
+        action.payload;
       const loadingData = {
-        isLoading: true,
+        /**
+         * Indicates whether the request is currently loading.
+         * If `staleWhileRevalidate` is true, this will be false to indicate that the request is being revalidated in the background.
+         */
+        isLoading: !staleWhileRevalidate,
         error: undefined,
         isError: false,
         success: false,

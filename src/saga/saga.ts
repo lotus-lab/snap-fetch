@@ -14,7 +14,7 @@ import { PayloadAction } from "@reduxjs/toolkit";
 
 import {
   selectQueriesData,
-  selectSagaQueryApiConfig,
+  selectSnapQueryApiConfig,
 } from "../selectors/selectors";
 import { actions } from "../toolkit";
 import {
@@ -114,7 +114,7 @@ function* invalidateCatchSaga(action: PayloadAction<InvalidateCachePayload>) {
       })
     );
 
-    const baseApiConfig: APiConfig = yield select(selectSagaQueryApiConfig);
+    const baseApiConfig: APiConfig = yield select(selectSnapQueryApiConfig);
 
     if (
       mutation &&

@@ -55,7 +55,7 @@ export const rootReducer = combineReducers({
  */
 
 import { configureStore } from "@reduxjs/toolkit";
-import createSnapMiddleware from "redux-Snap";
+import createSnapMiddleware from "redux-saga";
 import { rootReducer } from "./reducers";
 import { rootSnapFetchSaga } from "snap-fetch";
 

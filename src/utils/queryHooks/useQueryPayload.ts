@@ -1,7 +1,7 @@
 import { useSelector } from "react-redux";
 import type { EndpointResult } from "../../types/types";
 import { useMemo } from "react";
-import { selectSagaQueryApiConfig } from "../../selectors/selectors";
+import { selectSnapQueryApiConfig } from "../../selectors/selectors";
 
 interface Options {
   sagaQueryData: EndpointResult;
@@ -16,7 +16,7 @@ export function useQueryPayload({
   requestOptions,
   sagaQueryData,
 }: Options) {
-  const baseConfig = useSelector(selectSagaQueryApiConfig);
+  const baseConfig = useSelector(selectSnapQueryApiConfig);
   return useMemo(() => {
     return {
       ...baseConfig,

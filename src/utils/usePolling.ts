@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef } from "react";
+import type { RefetchOptions } from "../types/types";
 
 interface Props {
   pollingInterval: number | undefined;
-  refetch: () => void;
+  refetch: (options?: RefetchOptions) => void;
 }
 export const usePolling = ({ refetch, pollingInterval }: Props) => {
   /** @Polling */
@@ -21,7 +22,9 @@ export const usePolling = ({ refetch, pollingInterval }: Props) => {
 
     if (pollingInterval) {
       timerRef.current = setInterval(() => {
-        refetch();
+        refetch({
+          staleWhileRevalidate: true,
+        });
       }, pollingInterval * 1000);
     }
   }, [pollingInterval, JSON.stringify(refetch), stopTimer]);

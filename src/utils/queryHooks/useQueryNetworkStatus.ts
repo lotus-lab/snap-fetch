@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useNetworkStatus } from "../useNetworkStatus";
+import { RefetchOptions } from "src/types/types";
 
-export function useQueryNetworkStatus(refetch: () => void) {
+export function useQueryNetworkStatus(
+  refetch: (options?: RefetchOptions) => void
+) {
   const { isOnline } = useNetworkStatus();
   const onlineRef = useRef(isOnline);
 
@@ -15,7 +18,9 @@ export function useQueryNetworkStatus(refetch: () => void) {
 
   useEffect(() => {
     if (isOnline && networkStatusChanged) {
-      refetch();
+      refetch({
+        staleWhileRevalidate: true,
+      });
     }
   }, [networkStatusChanged, isOnline, refetch]);
 }

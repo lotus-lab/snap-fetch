@@ -1,11 +1,11 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-import { useSagaQuery } from "../../useSagaQuery";
-import { type Result, useSagaMutation } from "../../useSagaMutation";
+import { useSnapQuery } from "../../useSnapQuery";
+import { type Result, useSnapMutation } from "../../useSnapMutation";
 import type { CreateApi } from "./type";
 import type {
   MutationRequestOptions,
   RequestOptions,
-  SagaQueryResult,
+  SnapQueryResult,
 } from "../../types/types";
 
 type ApiHooks<
@@ -22,7 +22,7 @@ type ApiHooks<
   generatedQueryHooks: {
     [K in keyof QueryFns]: (
       payload?: Parameters<QueryFns[K]>[0]
-    ) => SagaQueryResult<T>;
+    ) => SnapQueryResult<T>;
   };
   generatedMutationHooks: {
     [K in keyof MutationFns]: (
@@ -37,7 +37,7 @@ type ApiHooks<
 // }: CreateApi<T, ActualApiRes>) => {
 //   type QueryApiKeys = keyof typeof builder.query;
 //   type QueryApiHooks = {
-//     [K in QueryApiKeys]: (payload?: any) => SagaQueryResult<T>;
+//     [K in QueryApiKeys]: (payload?: any) => SnapQueryResult<T>;
 //   };
 
 //   const generatedQueryHooks: QueryApiHooks = builder.query
@@ -46,7 +46,7 @@ type ApiHooks<
 //           const requestOpt = (payload?: any) => builder?.query?.[key](payload);
 //           const query = (payload?: any) => {
 //             const suffixUrl = requestOpt(payload)?.suffixUrl;
-//             return useSagaQuery(
+//             return useSnapQuery(
 //               `${endpoint}/${suffixUrl ?? ""}`,
 //               requestOpt(payload)
 //             );
@@ -73,7 +73,7 @@ type ApiHooks<
 //             builder.mutation?.[key](payload);
 //           const mutation = (payload?: string | number) => {
 //             const suffixUrl = requestOpt(payload)?.suffixUrl;
-//             return useSagaMutation(
+//             return useSnapMutation(
 //               `${endpoint}/${suffixUrl ?? ""}`,
 //               requestOpt(payload)
 //             );
@@ -113,7 +113,7 @@ export const createApi = <
   type QueryApiHooks = {
     [K in QueryApiKeys]: (
       payload?: Parameters<QueryFns[K]>[0]
-    ) => SagaQueryResult<T>;
+    ) => SnapQueryResult<T>;
   };
 
   const generatedQueryHooks: QueryApiHooks = builder.query
@@ -121,7 +121,7 @@ export const createApi = <
         const requestOpt = (payload?: any) => builder.query![key](payload);
         const query = (payload?: Parameters<QueryFns[typeof key]>[0]) => {
           const suffixUrl = requestOpt(payload)?.suffixUrl;
-          return useSagaQuery(
+          return useSnapQuery(
             `${endpoint}/${suffixUrl ?? ""}`,
             requestOpt(payload)
           );
@@ -146,7 +146,7 @@ export const createApi = <
             payload?: Parameters<MutationFns[typeof key]>[0]
           ) => {
             const suffixUrl = requestOpt(payload)?.suffixUrl;
-            return useSagaMutation(
+            return useSnapMutation(
               `${endpoint}/${suffixUrl ?? ""}`,
               requestOpt(payload)
             );

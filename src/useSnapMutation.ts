@@ -30,7 +30,7 @@ export interface Result<T> {
   clear: () => void;
 }
 
-export const useSagaMutation = <T, ActualApiRes = unknown>(
+export const useSnapMutation = <T, ActualApiRes = unknown>(
   endpoint: string,
   requestOptions: MutationRequestOptions<T, ActualApiRes> = {}
 ): Result<T | undefined> => {
