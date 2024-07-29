@@ -55,12 +55,12 @@ export const rootReducer = combineReducers({
  */
 
 import { configureStore } from "@reduxjs/toolkit";
-import createSnapMiddleware from "redux-saga";
+import createSagaMiddleware from "redux-saga";
 import { rootReducer } from "./reducers";
 import { rootSnapFetchSaga } from "snap-fetch";
 
 export function configureAppStore() {
-  const SnapMiddleware = createSnapMiddleware();
+  const sagaMiddleware = createSagaMiddleware();
 
   // Create the Redux store with middleware
   const store = configureStore({
@@ -68,11 +68,11 @@ export function configureAppStore() {
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
         serializableCheck: false,
-      }).concat(SnapMiddleware),
+      }).concat(sagaMiddleware),
   });
 
   // Run the root Snap
-  SnapMiddleware.run(rootSnapFetchSaga);
+  sagaMiddleware.run(rootSnapFetchSaga);
   return { store };
 }
 ```
@@ -101,11 +101,15 @@ useSetBaseConfiguration(options);
 
 The `options` object accepts the following properties:
 
-- `baseUrl` (string, required): The base URL for the API. (**Required**)
-- `disableCaching` (boolean): If set to `true`, caching will be disabled, can be overridden by individual query options.
-- `customFetchFunction` ((endpoint: string) => **Promise(Response)**): A custom fetch function to use for making API requests. If you don't want to use the built in fetcher.
-- `headers` (Headers): Additional headers to be included in each request.
-- Fetch API RequestInitiator...
+- **baseUrl** (string, required): The base URL for the API. (**Required**)
+- **disableCaching** (boolean): If set to **true**, caching will be disabled, can be overridden by individual query options.
+- **cacheExpirationTime** (number default to 90 sec): The cache expiration time in seconds, can be overridden by individual query options.
+- **customFetchFunction** ((endpoint: string) => **Promise(Response)**): A custom fetch function to use for making API requests. If you don't want to use the built in fetcher.
+- **headers** (Headers): Additional headers to be included in each request.
+- **disableRefetchOnReconnect (boolean)** disable refetching on reconnect for all queries if true, can be overridden by individual disableRefetchOnReconnect properties on individual queries.
+- **skipAuth (boolean, optional)** Skip authorization header for all queries and mutation if true, can be overridden by individual skipAuth properties on individual queries and mutations.
+- **debounce (number)** Debounce time for all queries if true, can be overridden by individual debounce properties on individual queries.
+- Axios API Configs...
 
 ```javascript
 // To root of you project like App.tsx main.tsx
@@ -136,7 +140,6 @@ it accepts two parameters
 
 ```javascript
 type RequestOptions = {
-  effect?: "takeLatest" | "takeLeading" | "takeEvery", // Snap effect, default is "takeEvery"
   method?: Method,
   disableCaching?: boolean, // will disable caching for the current endpoint request
   fetchFunction?: (endpoint: string) => Promise<Response>, // custom fetch function if you don't like the built-in.
@@ -229,7 +232,6 @@ This hook allows you to manipulate the data and make mutation calls it will auto
 
 ```javascript
 type RequestOptions = {
-  effect?: "takeLatest" | "takeLeading" | "takeEvery", // Snap effect, default is "takeLeading"
   method?: Method,
   fetchFunction?: (endpoint: string) => Promise<Response>, // custom fetch function if you don't like the built-in.
   invalidateTags?: Tags, // Tags will be used to invalidate on mutation requests.

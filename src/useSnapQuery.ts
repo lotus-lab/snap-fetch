@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import type { ActionCreatorWithPayload } from "@reduxjs/toolkit";
 import type {
   RefetchOptions,
   RequestOptions,
-  SnapQueryResult,
+  FetchResult,
 } from "./types/types";
 import { selectQueriesData } from "./selectors/selectors";
 
 import { useGenHashKey } from "./useGenHashKey";
 import { usePolling } from "./utils/usePolling";
 import { useCacheInvalidate } from "./utils/useCacheInvalidate";
-import type { ActionCreatorWithPayload } from "@reduxjs/toolkit";
 import { suffixCache } from "./saga/saga";
 import { actions } from "./toolkit";
 import { usePagination } from "./utils/usePagination";
@@ -21,14 +21,22 @@ import { useQueryNetworkStatus } from "./utils/queryHooks/useQueryNetworkStatus"
 
 export const newActions: Array<ActionCreatorWithPayload<any, string>> = [];
 
+/**
+ * A custom React hook that provides a way to fetch data using a saga-based approach.
+ *
+ * This hook manages the lifecycle of a data fetch, including caching, refetching, and polling. It also provides options for pagination and handling network status changes.
+ * @Generic <T, ActualApiRes = unknown>
+ * @param endpoint - The API endpoint to fetch data from.
+ * @param requestOptions - An object containing options for the data fetch, such as filters, pagination, and polling.
+ * @returns An object containing the fetched data, refetch and clear functions, pagination options, and the dispatch function.
+ */
 export const useSnapQuery = <T, ActualApiRes = unknown>(
   endpoint: string,
   requestOptions: RequestOptions<T, ActualApiRes> = {}
-): SnapQueryResult<T> => {
+): FetchResult<T> => {
   const dispatch = useDispatch();
   const filterString = useMemo(
     () => JSON.stringify(requestOptions?.filter ?? {}),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [JSON.stringify(requestOptions?.filter)]
   );
 
@@ -55,7 +63,7 @@ export const useSnapQuery = <T, ActualApiRes = unknown>(
     hashKey,
     pageNo: sagaQueryData.pagination?.pageNo,
     size: sagaQueryData.pagination?.size,
-    total: 10,
+    total: sagaQueryData.data?.total ?? 10,
     usePagination: requestOptions.usePagination,
   });
 
@@ -77,8 +85,9 @@ export const useSnapQuery = <T, ActualApiRes = unknown>(
     },
     [hashKey, actionCreated]
   );
+
   /** @RefetchOnReconnect */
-  useQueryNetworkStatus(refetch);
+  useQueryNetworkStatus(refetch, payload.disableRefetchOnReconnect);
 
   /** @Polling */
   usePolling({
@@ -86,7 +95,7 @@ export const useSnapQuery = <T, ActualApiRes = unknown>(
     pollingInterval: requestOptions.pollingInterval,
   });
 
-  /**@CacheTimeLimitChecker */
+  /** @CacheTimeLimitChecker */
   /**
    * Invalidates the cache for the current query based on the provided options.
    *
@@ -100,6 +109,7 @@ export const useSnapQuery = <T, ActualApiRes = unknown>(
     cacheExpirationTime: payload?.cacheExpirationTime,
     hashKey,
     createdAt: sagaQueryData?.createdAt,
+    refetch,
   });
 
   /**

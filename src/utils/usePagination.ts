@@ -1,7 +1,7 @@
-import { useCallback, useMemo } from "react";
-import { useDispatch } from "react-redux";
-import { actions } from "../toolkit";
-import { suffixCache } from "../saga/saga";
+import { useCallback, useMemo } from 'react';
+import { useDispatch } from 'react-redux';
+import { actions } from '..';
+import { suffixCache } from '../saga/saga';
 
 interface Props {
   hashKey: string | number | undefined;
@@ -31,11 +31,11 @@ export const usePagination = ({
           actions.changeSize({
             hashKey,
             value,
-          })
+          }),
         );
       }
     },
-    [hashKey]
+    [hashKey],
   );
 
   const next = useCallback(
@@ -47,11 +47,27 @@ export const usePagination = ({
             hashKey,
             increase: true,
             debounce,
-          })
+          }),
         );
       }
     },
-    [usePagination, hashKey]
+    [usePagination, hashKey],
+  );
+
+  const changePageNo = useCallback(
+    (value?: number, debounce?: number) => {
+      if (hashKey && usePagination) {
+        suffixCache.delete(hashKey);
+        dispatch(
+          actions.setPageNo({
+            hashKey,
+            value,
+            debounce,
+          }),
+        );
+      }
+    },
+    [usePagination, hashKey],
   );
 
   const prev = useCallback(
@@ -63,11 +79,11 @@ export const usePagination = ({
             hashKey,
             increase: false,
             debounce,
-          })
+          }),
         );
       }
     },
-    [hashKey, usePagination]
+    [hashKey, usePagination],
   );
 
   return {
@@ -75,6 +91,7 @@ export const usePagination = ({
     prev,
     totalItems: total,
     next,
+    changePageNo,
     changeSize,
     pageNo,
     size,

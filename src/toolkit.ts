@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { CaseReducer, PayloadAction, createSlice } from "@reduxjs/toolkit";
+import { type PayloadAction, createSlice } from "@reduxjs/toolkit";
 
-import {
+import type {
   APiConfig,
   ChangePageNoPayload,
   InvalidateCachePayload,
@@ -24,69 +24,30 @@ export const initialState: QueryState = {
     cacheExpirationTime: 90,
   },
   actionsType: [],
-};
-
-const requestActions: CaseReducer<QueryState, PayloadAction<RequestPayload>> = (
-  state,
-  action
-) => {
-  const {
-    endpoint,
-    tag,
-    mutation,
-    query,
-    queryParams,
-    hashKey,
-    transformResponse,
-  } = action.payload;
-
-  const requestData = {
-    error: undefined,
-    isLoading: true,
-    isError: false,
-    success: false,
-    tag,
-    mutation,
-    query,
-    endpoint,
-    queryParams,
-    hashKey,
-    transformResponse,
-  };
-
-  if (query && hashKey) {
-    state.endpoints.queries[hashKey as string] = {
-      ...state.endpoints.queries[hashKey as string],
-      ...requestData,
-    };
-  }
-  if (mutation) {
-    state.endpoints.mutations[endpoint] = {
-      ...state.endpoints.mutations[endpoint],
-      ...requestData,
-    };
-  }
+  hashKeys: {},
 };
 
 const SnapFetchSlice = createSlice({
-  name: "sagaQuery",
+  name: "snapFetch",
   initialState,
   reducers: {
-    takeLeadingRequest: (state, action: PayloadAction<RequestPayload>) =>
-      requestActions(state, action),
-    fetchDataAction: (state, action: PayloadAction<RequestPayload>) =>
-      requestActions(state, action),
-    takeLatestRequest: (state, action: PayloadAction<RequestPayload>) =>
-      requestActions(state, action),
-
+    setHashKey(state, action: PayloadAction<string>) {
+      if (action.payload) {
+        state.hashKeys[action.payload] = action.payload;
+      }
+    },
+    removeHashKey(
+      state,
+      action: PayloadAction<{ key: string | number | undefined }>
+    ) {
+      if (action.payload.key) {
+        delete state.hashKeys[action.payload.key];
+      }
+    },
     loading: (state, action: PayloadAction<RequestPayload>) => {
       const { endpoint, mutation, query, hashKey, staleWhileRevalidate } =
         action.payload;
       const loadingData = {
-        /**
-         * Indicates whether the request is currently loading.
-         * If `staleWhileRevalidate` is true, this will be false to indicate that the request is being revalidated in the background.
-         */
         isLoading: !staleWhileRevalidate,
         error: undefined,
         isError: false,
@@ -113,17 +74,10 @@ const SnapFetchSlice = createSlice({
       state,
       action: PayloadAction<string | number | undefined>
     ) => {
-      const loadingData = {
-        isLoading: false,
-        error: undefined,
-        isError: false,
-        success: false,
-      };
-
       if (action.payload) {
         state.endpoints.queries[action.payload] = {
           ...state.endpoints.queries[action.payload],
-          ...loadingData,
+          isLoading: false,
         };
       }
     },
@@ -196,6 +150,20 @@ const SnapFetchSlice = createSlice({
       _state,
       _action: PayloadAction<InvalidateCachePayload>
     ) => {},
+    setPageNo: (
+      state,
+      action: PayloadAction<Omit<ChangePageNoPayload, "increase">>
+    ) => {
+      const { hashKey, value, debounce } = action.payload;
+      if (hashKey) {
+        const currentPageNo =
+          state.endpoints.queries[hashKey as string]?.pagination?.pageNo;
+        if (currentPageNo) {
+          state.endpoints.queries[hashKey as string].pagination.pageNo = value;
+          state.endpoints.queries[hashKey as string].debounce = debounce;
+        }
+      }
+    },
     changePageNo: (state, action: PayloadAction<ChangePageNoPayload>) => {
       const { hashKey, increase, debounce } = action.payload;
       if (hashKey) {
@@ -208,14 +176,12 @@ const SnapFetchSlice = createSlice({
           }
           state.endpoints.queries[hashKey as string].pagination.pageNo =
             Number(currentPageNo) + 1;
-        } else {
-          if (state.endpoints.queries[hashKey as string]) {
-            if (debounce) {
-              state.endpoints.queries[hashKey as string].debounce = debounce;
-            }
-            state.endpoints.queries[hashKey as string].pagination.pageNo =
-              Number(currentPageNo) - 1;
+        } else if (state.endpoints.queries[hashKey as string]) {
+          if (debounce) {
+            state.endpoints.queries[hashKey as string].debounce = debounce;
           }
+          state.endpoints.queries[hashKey as string].pagination.pageNo =
+            Number(currentPageNo) - 1;
         }
       }
     },

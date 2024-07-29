@@ -13,13 +13,20 @@ import { endpointInitial } from "../constants";
 import { isEqual } from "../utils/utils";
 
 const selectSlice = (state: any) => state;
-const selectSnapQuerySlice: (state: any) => QueryState = createSelector(
+const selectSagaQuerySlice: (state: any) => QueryState = createSelector(
   [selectSlice],
-  (state: any) => state?.sagaQuery
+  (state: any) => state?.snapFetch
 );
 
 export const selectQueryData: (state: any) => EndpointState | undefined =
-  createSelector([selectSlice], (state) => state?.sagaQuery?.endpoints);
+  createSelector([selectSlice], (state) => state?.snapFetch?.endpoints);
+
+export const selectAllHashKeys: (
+  state: any
+) => { [key: string]: string | number } | undefined = createSelector(
+  [selectSlice],
+  (state) => state?.snapFetch?.hashKeys
+);
 
 export const selectQueriesData: (
   state: any,
@@ -27,7 +34,12 @@ export const selectQueriesData: (
 ) => EndpointResult = createSelector(
   [selectQueryData, (_state: any, hashKey: EndpointKey) => hashKey],
 
-  (state, hashKey) => state?.queries?.[hashKey] || endpointInitial
+  (state, hashKey) => {
+    if (hashKey && state?.queries?.[hashKey]) {
+      return state?.queries?.[hashKey];
+    }
+    return endpointInitial;
+  }
 );
 
 export const selectQueriesDataByTags: (
@@ -57,9 +69,12 @@ export const selectMutationsData: (
   [selectQueryData, (_state: any, endpoint: EndpointKey) => endpoint],
 
   (state, endpoint) => {
-    return state?.mutations?.[endpoint] || endpointInitial;
+    if (endpoint && state?.mutations?.[endpoint]) {
+      return state?.mutations?.[endpoint];
+    }
+    return endpointInitial;
   }
 );
 
-export const selectSnapQueryApiConfig: (state: any) => APiConfig =
-  createSelector([selectSnapQuerySlice], (state) => state?.apiConfig);
+export const selectSnapFetchApiConfig: (state: any) => APiConfig =
+  createSelector([selectSagaQuerySlice], (state) => state?.apiConfig);

@@ -9,13 +9,13 @@ import { actions } from "./toolkit";
 import { selectMutationsData } from "./selectors/selectors";
 import {
   BodyType,
-  Method,
   MutationRequestOptions,
   PayloadType,
   RequestPayload,
 } from "./types/types";
 import { createAction } from "@reduxjs/toolkit";
-import { useGenHashKey } from "./useGenHashKey";
+import { useGenHashKey } from ".";
+import { Method } from "axios";
 
 export interface Result<T> {
   data?: T | undefined;

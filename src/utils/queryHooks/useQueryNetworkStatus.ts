@@ -1,26 +1,33 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNetworkStatus } from "../useNetworkStatus";
-import { RefetchOptions } from "src/types/types";
+import type { RefetchOptions } from "../../types/types";
 
 export function useQueryNetworkStatus(
-  refetch: (options?: RefetchOptions) => void
+  refetch: (options?: RefetchOptions) => void,
+  disableRefetchOnReconnect: boolean | undefined
 ) {
   const { isOnline } = useNetworkStatus();
   const onlineRef = useRef(isOnline);
+  const [networkStatusChanged, setNetworkStatusChanged] = useState(false);
 
-  const networkStatusChanged = useMemo(() => {
+  const getNetworkStatusChanged = useCallback(() => {
     if (isOnline !== onlineRef.current) {
       onlineRef.current = isOnline;
-      return true;
+      setNetworkStatusChanged(true);
+    } else {
+      setNetworkStatusChanged(false);
     }
-    return false;
   }, [isOnline]);
 
   useEffect(() => {
-    if (isOnline && networkStatusChanged) {
+    getNetworkStatusChanged();
+  }, [getNetworkStatusChanged]);
+
+  useEffect(() => {
+    if (isOnline && networkStatusChanged && !disableRefetchOnReconnect) {
       refetch({
         staleWhileRevalidate: true,
       });
     }
-  }, [networkStatusChanged, isOnline, refetch]);
+  }, [networkStatusChanged, isOnline, refetch, disableRefetchOnReconnect]);
 }

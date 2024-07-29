@@ -1,4 +1,4 @@
-import { EndpointResult } from "./types/types";
+import { EndpointResult } from './types/types';
 
 export const endpointInitial: EndpointResult = {
   isLoading: false,
@@ -9,6 +9,6 @@ export const endpointInitial: EndpointResult = {
   mutation: false,
   query: false,
   tag: undefined,
-  queryParams: new URLSearchParams(""),
+  queryParams: new URLSearchParams(''),
   pagination: { pageNo: 1, size: 10 },
 };

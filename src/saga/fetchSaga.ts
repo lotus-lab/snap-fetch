@@ -4,7 +4,7 @@ import { all, call, put, select } from "redux-saga/effects";
 import { APiConfig, EndpointResult, RequestPayload } from "../types/types";
 import {
   selectQueriesDataByTags,
-  selectSnapQueryApiConfig,
+  selectSnapFetchApiConfig,
 } from "../selectors/selectors";
 import { fetcher } from "../utils/utils";
 import { actions } from "../toolkit";
@@ -22,14 +22,17 @@ export function* fetchSaga(payload: RequestPayload) {
 
   let data: unknown;
 
-  const baseApiConfig: APiConfig = yield select(selectSnapQueryApiConfig);
-  const fetcherPayload: RequestPayload<any, any> = {
+  const baseApiConfig: APiConfig = yield select(selectSnapFetchApiConfig);
+  const fetcherPayload: RequestPayload<any, any> = yield {
     ...baseApiConfig,
     ...payload,
-    headers: { ...baseApiConfig.headers, ...payload.headers },
+    headers: {
+      ...(baseApiConfig?.headers ?? {}),
+      ...(payload?.headers ?? {}),
+    },
   };
 
-  //@ts-ignore
+  // @ts-ignore
   const response: Response = yield call(() => fetcher(fetcherPayload));
 
   data = yield response;

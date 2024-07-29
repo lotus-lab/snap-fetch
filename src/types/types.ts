@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { Dispatch } from "@reduxjs/toolkit";
-import type { AxiosRequestConfig } from "axios";
+import { Dispatch } from "@reduxjs/toolkit";
+import { AxiosRequestConfig, Method } from "axios";
+import {} from "redux-saga";
 
 export type KeysOfEndpointSate = { [key: string]: EndpointResult };
 
-export type EndpointKey = keyof KeysOfEndpointSate;
+export type EndpointKey = keyof KeysOfEndpointSate | undefined;
 
 // export type Tags = Array<string | number> | number | string | undefined;
 export type Tag = string | number | undefined;
@@ -40,14 +41,7 @@ export interface RequestPayload<T = any, ActualApiRes = any>
   skipAuth?: boolean;
   // headers?: AxiosHeaders;
   body?: BodyType;
-  /**
-   * Specifies whether to use the stale-while-revalidate caching strategy for the API request.
-   * When set to `true`, the cached response will be returned immediately, even if it is stale,
-   * and a background request will be made to update the cache.
-   * This can improve perceived performance by providing a faster response, while still ensuring
-   * the data is eventually updated.
-   */
-  staleWhileRevalidate?: boolean;
+  staleWhileRevalidate?: boolean | undefined;
 }
 export type UseQueryOptions = {
   requestInit?: OmittedAxiosConfig;
@@ -57,6 +51,10 @@ export interface CreateApiOptions<T, ActualApiRes> {
   fetchFunction?: (endpoint: string) => Promise<Response>;
   tag?: Tag;
   baseURL?: string;
+  /**
+   * @default 90 (second or 1.5 minute)
+   * Used to specify the duration for the current query cached data should be considered valid before it needs to be refreshed.
+   */
   cacheExpirationTime?: number;
   transformResponse?: (response: ActualApiRes) => T;
 }
@@ -64,9 +62,6 @@ export interface CreateApiOptions<T, ActualApiRes> {
 /* --- STATE --- */
 
 export interface APiConfig extends OmittedAxiosConfig {
-  /**
-   * The base URL for the API requests.
-   */
   baseURL: string;
   /**
    * @default 90 (second or 1.5 minute)
@@ -80,26 +75,9 @@ export interface APiConfig extends OmittedAxiosConfig {
    */
   disableCaching?: boolean;
   customFetchFunction?: ((endpoint: string) => Promise<Response>) | undefined;
-
-  /**
-   * The HTTP method to use for the API request.
-   */
   method?: Method;
-  /**
-   * Disables the automatic refetching of queries when the network reconnects.
-   * This can be useful to prevent unnecessary data fetches after a network interruption.
-   */
   disableRefetchOnReconnect?: boolean;
-
-  /**
-   * Indicates whether to skip authentication for the API request.
-   */
   skipAuth?: boolean;
-
-  /**
-   * Specifies a debounce delay in milliseconds for the API request. This can be used to prevent excessive API calls when the user is rapidly interacting with the UI.
-   * Best for search or filters
-   */
   debounce?: number;
 }
 
@@ -107,6 +85,7 @@ export declare type QueryState = {
   endpoints: EndpointState;
   apiConfig: APiConfig;
   actionsType: Array<string>;
+  hashKeys: { [key: string]: string | number };
 };
 
 export type EndpointResult = {
@@ -145,39 +124,44 @@ export type InvalidateCachePayload<T = undefined> = {
   queryCatchData: EndpointResult;
 };
 
+type FilterType = number | string | boolean;
+
 export interface Options {
-  filter?: { [key: string]: number | boolean | string | undefined | null };
+  filter?: { [key: string]: FilterType | Array<FilterType> | undefined | null };
   pollingInterval?: number;
   skip?: boolean;
+  /**
+   * If you are using this, make sure your API returns response in this format:
+   * @example
+   * {
+   *   data: Array<any>,
+   *   total: number
+   * }
+   */
   usePagination?: boolean;
 }
 
-export type Method =
-  | "POST"
-  | "PUT"
-  | "DELETE"
-  | "GET"
-  | "HEAD"
-  | "OPTIONS"
-  | "CONNECT"
-  | "PATCH";
 export interface RequestOptions<T, ActualApiRes = undefined>
   extends CreateApiOptions<T, ActualApiRes>,
     Options,
     OmittedAxiosConfig {
-  effect?: "takeLatest" | "takeLeading" | "takeEvery";
   method?: Method;
   disableCaching?: boolean;
   disableRefetchOnReconnect?: boolean;
+  /**
+   * An optional debounce delay in milliseconds for filter-related actions.
+   * Make sure to given "tag" for your current query if you have multiple useSagaQuery using the same endpoint with in the same component or page
+   * This will be used to avoid canceling fetches with the same endpoint and different filter, because internally we use the (endpoint + tag) as a taskId in redux-saga race effect
+   */
   debounce?: number;
   suffixUrl?: string | number;
   skipAuth?: boolean;
 }
 
-export interface SnapQueryResult<T>
+export interface FetchResult<T>
   extends Omit<EndpointResult, "transformResponse"> {
   data?: T | undefined;
-  refetch: (options?: RefetchOptions) => void;
+  refetch: () => void;
   clear: () => void;
   paginationOptions: PaginationOptions;
   dispatch: Dispatch<any>;
@@ -191,6 +175,7 @@ export type PaginationOptions = {
   changeSize: (value: number) => void;
   pageNo: number | undefined;
   size: number | undefined;
+  changePageNo: (value?: number, debounce?: number) => void;
 };
 
 export type QueryType = {
@@ -245,16 +230,16 @@ export interface PayloadType<T, ActualApiRes>
   endpoint: string;
   hashKey: string | number | undefined;
   fetchFunctionIsOutsider: boolean;
-  pagination?: Pagination;
+  pagination?: Pagination | undefined;
   createdAt?: Date | undefined;
-  staleWhileRevalidate?: boolean;
+  staleWhileRevalidate?: boolean | undefined;
 }
 
 export type ChangePageNoPayload = {
   hashKey: string | number | undefined;
-  increase: boolean;
-  debounce?: number;
-  // command: () => void;
+  increase?: boolean | undefined;
+  debounce?: number | undefined;
+  value?: number | undefined;
 };
 
 export type RefetchOptions = {

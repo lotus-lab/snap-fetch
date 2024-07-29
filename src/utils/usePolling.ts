@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef } from "react";
-import type { RefetchOptions } from "../types/types";
+import { useCallback, useEffect, useRef } from 'react';
+import type { RefetchOptions } from '../types/types';
 
 interface Props {
   pollingInterval: number | undefined;
@@ -8,7 +8,7 @@ interface Props {
 export const usePolling = ({ refetch, pollingInterval }: Props) => {
   /** @Polling */
 
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const stopTimer = useCallback(() => {
     if (timerRef.current) {

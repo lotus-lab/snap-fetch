@@ -1,15 +1,17 @@
-import { useCallback, useEffect } from "react";
-import { suffixCache } from "../saga/saga";
+import { useCallback, useEffect } from 'react';
+import type { EndpointKey, RefetchOptions } from '../types/types';
 
 interface Props {
   createdAt: Date | undefined;
   cacheExpirationTime: number | undefined;
-  hashKey: string | undefined;
+  hashKey: EndpointKey;
+  refetch: (options?: RefetchOptions) => void;
 }
 export const useCacheInvalidate = ({
   createdAt,
   cacheExpirationTime,
   hashKey,
+  refetch,
 }: Props) => {
   const refetchOnCacheLimitPassed = useCallback(() => {
     if (
@@ -18,7 +20,9 @@ export const useCacheInvalidate = ({
       createdAt.getTime() + cacheExpirationTime * 1000 < Date.now() &&
       hashKey
     ) {
-      suffixCache.delete(hashKey);
+      refetch({
+        staleWhileRevalidate: true,
+      });
     }
   }, [cacheExpirationTime, createdAt, hashKey]);
 

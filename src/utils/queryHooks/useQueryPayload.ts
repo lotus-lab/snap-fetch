@@ -1,22 +1,26 @@
 import { useSelector } from "react-redux";
-import type { EndpointResult } from "../../types/types";
 import { useMemo } from "react";
-import { selectSnapQueryApiConfig } from "../../selectors/selectors";
+import type {
+  EndpointKey,
+  EndpointResult,
+  RequestOptions,
+} from "../../types/types";
+import { selectSnapFetchApiConfig } from "../../selectors/selectors";
 
-interface Options {
+interface Options<T, ActualApiRes> {
   sagaQueryData: EndpointResult;
   endpoint: string;
-  requestOptions: any;
-  hashKey: string;
+  requestOptions: RequestOptions<T, ActualApiRes>;
+  hashKey: EndpointKey;
 }
 
-export function useQueryPayload({
+export function useQueryPayload<T, ActualApiRes>({
   endpoint,
   hashKey,
   requestOptions,
   sagaQueryData,
-}: Options) {
-  const baseConfig = useSelector(selectSnapQueryApiConfig);
+}: Options<T, ActualApiRes>) {
+  const baseConfig = useSelector(selectSnapFetchApiConfig);
   return useMemo(() => {
     return {
       ...baseConfig,
@@ -25,7 +29,7 @@ export function useQueryPayload({
       query: true,
       mutation: false,
       hashKey,
-      fetchFunctionIsOutsider: requestOptions.fetchFunction ? true : false,
+      fetchFunctionIsOutsider: !!requestOptions.fetchFunction,
       createdAt: new Date(),
       pagination: {
         pageNo: sagaQueryData?.pagination?.pageNo ?? 1,
