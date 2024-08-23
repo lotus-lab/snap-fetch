@@ -1,5 +1,18 @@
 # Snap-Fetch Overview
 
+## FEATURES
+
+- Pagination Support for all queries
+- Caching and Invalidation
+- Adjustable cache expiration time
+- Automatic Refetching on Network Reconnect
+- Transform Response Functionality
+- Stale While Revalidate (SWR) Pattern
+- Out of the box duplicate requests prevention
+- Global and Individual (Query and Mutation) Configurations
+- Request Debouncing
+- **New features will be added soon...**
+
 ## **WHAT WE'LL LEARN**
 
 - What snap-fetch is and what problems it solves

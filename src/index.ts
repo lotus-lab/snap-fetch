@@ -13,7 +13,7 @@ export { useGenHashKey } from "./useGenHashKey";
 export { useSetBaseConfiguration } from "./useSetBaseConfiguration";
 export { rootSnapFetchSaga } from "./saga/saga";
 
-export * from "./utils/debounce";
+export * from "./utils/debounce/index";
 
 export type * from "./types/types";
 

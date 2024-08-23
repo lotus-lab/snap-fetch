@@ -14,7 +14,7 @@ import {
   RequestPayload,
 } from "./types/types";
 import { createAction } from "@reduxjs/toolkit";
-import { useGenHashKey } from ".";
+import { useGenHashKey } from "./useGenHashKey";
 import { Method } from "axios";
 
 export interface Result<T> {

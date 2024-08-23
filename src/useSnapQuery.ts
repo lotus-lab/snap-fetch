@@ -41,7 +41,7 @@ export const useSnapQuery = <T, ActualApiRes = unknown>(
   );
 
   const hashInputString = useMemo(
-    () => `${endpoint}${filterString}`,
+    () => `${endpoint}${requestOptions.tag}${filterString}`,
     [endpoint, filterString]
   );
 

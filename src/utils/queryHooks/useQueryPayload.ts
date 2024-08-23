@@ -1,25 +1,21 @@
 import { useSelector } from "react-redux";
 import { useMemo } from "react";
-import type {
-  EndpointKey,
-  EndpointResult,
-  RequestOptions,
-} from "../../types/types";
+import type { EndpointKey, EndpointResult } from "../../types/types";
 import { selectSnapFetchApiConfig } from "../../selectors/selectors";
 
-interface Options<T, ActualApiRes> {
+interface Options {
   sagaQueryData: EndpointResult;
   endpoint: string;
-  requestOptions: RequestOptions<T, ActualApiRes>;
+  requestOptions: any;
   hashKey: EndpointKey;
 }
 
-export function useQueryPayload<T, ActualApiRes>({
+export function useQueryPayload({
   endpoint,
   hashKey,
   requestOptions,
   sagaQueryData,
-}: Options<T, ActualApiRes>) {
+}: Options) {
   const baseConfig = useSelector(selectSnapFetchApiConfig);
   return useMemo(() => {
     return {
